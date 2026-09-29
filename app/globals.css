@@ -1,26 +1,216 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #FCFAF6;
+  --foreground: #1E1715;
+  --primary-maroon: #6E121E;
+  --primary-gold: #C5A059;
+  --light-gold: #E5D2A4;
+  --ivory-cream: #FAF6EE;
+  --sand-border: #E8E0D2;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
 }
+
+/* Serif font for luxury Indian boutique headings */
+.font-serif-luxury {
+  font-family: 'Cormorant Garamond', Garamond, Georgia, serif;
+}
+
+/* Subtle gold shimmer text gradient */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #8A6D3B 0%, #C5A059 40%, #E5D2A4 70%, #9F7A38 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #B88E44 0%, #C5A059 50%, #A97C34 100%);
+}
+
+.maroon-gradient-bg {
+  background: linear-gradient(135deg, #590D18 0%, #761423 50%, #4D0913 100%);
+}
+
+/* Custom delicate scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F4EFE6;
+}
+::-webkit-scrollbar-thumb {
+  background: #C5A059;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A97C34;
+}
+
+/* 1. NAVBAR - Subtle Animated Underline & Maroon/Gold Accent */
+.nav-link {
+  position: relative;
+  display: inline-block;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  color: #3D332D;
+  transition: color 250ms ease-out;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #6E121E 0%, #C5A059 100%);
+  border-radius: 9999px;
+  transform: translateX(-50%);
+  transition: width 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease-out;
+  opacity: 0;
+}
+
+.nav-link:hover {
+  color: #6E121E;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+  opacity: 1;
+}
+
+.nav-link-active {
+  color: #6E121E !important;
+}
+
+.nav-link-active::after {
+  width: 100% !important;
+  opacity: 1 !important;
+}
+
+/* 2. SAREE PRODUCT CARDS - Smooth 1.03-1.05 Scale, Lift 3-5px, Subtle Shadow & Gold Accent */
+.saree-card {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 300ms ease-out;
+  will-change: transform;
+}
+
+.saree-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(197, 160, 89, 0.65);
+  box-shadow: 0 12px 28px -6px rgba(110, 18, 30, 0.08),
+              0 4px 14px -2px rgba(197, 160, 89, 0.12);
+}
+
+.saree-card-img {
+  transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1),
+              filter 350ms ease-out;
+}
+
+.saree-card:hover .saree-card-img {
+  transform: scale(1.04);
+  filter: brightness(1.03);
+}
+
+/* 3. COLLECTION CARDS - Smooth Zoom, Overlay & Title Emphasis */
+.collection-card {
+  transition: transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 300ms ease-out;
+  will-change: transform;
+}
+
+.collection-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(197, 160, 89, 0.7);
+  box-shadow: 0 16px 32px -8px rgba(30, 23, 21, 0.12),
+              0 6px 16px -3px rgba(197, 160, 89, 0.14);
+}
+
+.collection-card-img {
+  transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1),
+              filter 350ms ease-out;
+}
+
+.collection-card:hover .collection-card-img {
+  transform: scale(1.05);
+  filter: brightness(1.03);
+}
+
+/* 4. BUTTONS - Subtle, Elegant Hover Transitions */
+.btn-premium-primary {
+  transition: background-color 220ms ease-out,
+              border-color 220ms ease-out,
+              color 220ms ease-out,
+              box-shadow 220ms ease-out,
+              transform 200ms ease-out,
+              filter 220ms ease-out;
+}
+
+.btn-premium-primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -4px rgba(110, 18, 30, 0.25);
+}
+
+.btn-premium-primary:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+.btn-premium-outline {
+  transition: background-color 220ms ease-out,
+              border-color 220ms ease-out,
+              color 220ms ease-out,
+              box-shadow 220ms ease-out,
+              transform 200ms ease-out;
+}
+
+.btn-premium-outline:hover {
+  transform: translateY(-1px);
+  border-color: #6E121E;
+  box-shadow: 0 4px 14px -3px rgba(197, 160, 89, 0.2);
+}
+
+.btn-premium-outline:active {
+  transform: translateY(0);
+}
+
+.btn-premium-whatsapp {
+  transition: background-color 220ms ease-out,
+              box-shadow 220ms ease-out,
+              transform 200ms ease-out,
+              filter 220ms ease-out;
+}
+
+.btn-premium-whatsapp:hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -4px rgba(30, 63, 52, 0.25);
+}
+
+.btn-premium-whatsapp:active {
+  transform: translateY(0);
+}
+
+/* 5. ACCESSIBILITY - Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
