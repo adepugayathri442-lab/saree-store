@@ -28,7 +28,10 @@ import {
   CheckCheck,
   User as UserIcon,
   Ban,
+  Phone,
+  Edit3,
 } from "lucide-react";
+import { getFriendlyAuthErrorMessage } from "@/lib/supabase/auth";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import RecentlyViewed from "@/components/RecentlyViewed";
@@ -129,11 +132,30 @@ function getOrderStepIndex(status: OrderStatus): number {
 
 export default function CustomerAccountPage() {
   const router = useRouter();
-  const { user, customerName, customerEmail, isLoading, isLoggedIn, signOut } = useAuth();
+  const {
+    user,
+    customerName,
+    customerEmail,
+    customerPhone,
+    isLoading,
+    isLoggedIn,
+    signOut,
+    updateUserProfile,
+    refreshUser,
+  } = useAuth();
   const { totalCount: cartCount } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
 
   const [activeTab, setActiveTab] = useState<AccountActiveTab>("orders");
+
+  // Profile Edit State
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileNameInput, setProfileNameInput] = useState("");
+  const [profilePhoneInput, setProfilePhoneInput] = useState("");
+  const [profileEmailInput, setProfileEmailInput] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSaveMessage, setProfileSaveMessage] = useState<string | null>(null);
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
 
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -232,6 +254,10 @@ export default function CustomerAccountPage() {
   // If not logged in and done loading, redirect to login
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
+      if (typeof window !== "undefined" && window.location.search.includes("code=")) {
+        router.replace(`/auth/callback${window.location.search}&next=${encodeURIComponent("/account")}`);
+        return;
+      }
       router.replace("/login?redirect=/account");
     }
   }, [isLoading, isLoggedIn, router]);
@@ -1713,39 +1739,168 @@ export default function CustomerAccountPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Personal Information */}
                 <div className="p-5 sm:p-6 rounded-2xl bg-[#FAF7F2] border border-[#E8E0D2] space-y-4">
-                  <h3 className="font-serif-luxury font-bold text-base text-[#1E1715] flex items-center gap-2">
-                    <UserIcon className="w-4 h-4 text-[#6E121E]" />
-                    <span>Personal Information</span>
-                  </h3>
-
-                  <div className="space-y-3 text-xs">
-                    <div>
-                      <span className="text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider block">
-                        Full Name
-                      </span>
-                      <span className="font-bold text-sm text-[#1E1715]">
-                        {customerName || "Patron Member"}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider block">
-                        Email Address
-                      </span>
-                      <span className="font-medium text-sm text-[#1E1715]">
-                        {customerEmail || "Not provided"}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider block">
-                        Account Role &amp; Access
-                      </span>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
-                        ✓ Verified Patron
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif-luxury font-bold text-base text-[#1E1715] flex items-center gap-2">
+                      <UserIcon className="w-4 h-4 text-[#6E121E]" />
+                      <span>Personal Information</span>
+                    </h3>
+                    {!isEditingProfile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileNameInput(customerName || "");
+                          setProfilePhoneInput(customerPhone || "");
+                          setProfileEmailInput(customerEmail || "");
+                          setIsEditingProfile(true);
+                          setProfileSaveMessage(null);
+                          setProfileSaveError(null);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#6E121E] hover:underline cursor-pointer"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Edit Details</span>
+                      </button>
+                    )}
                   </div>
+
+                  {profileSaveMessage && (
+                    <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{profileSaveMessage}</span>
+                    </div>
+                  )}
+
+                  {profileSaveError && (
+                    <div className="p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                      <span>{profileSaveError}</span>
+                    </div>
+                  )}
+
+                  {isEditingProfile ? (
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        setProfileSaveError(null);
+                        setProfileSaveMessage(null);
+                        setIsSavingProfile(true);
+                        try {
+                          await updateUserProfile({
+                            fullName: profileNameInput.trim() || undefined,
+                            phone: profilePhoneInput.trim() || undefined,
+                            email: profileEmailInput.trim() || undefined,
+                          });
+                          await refreshUser();
+                          setProfileSaveMessage("Profile updated successfully!");
+                          setIsEditingProfile(false);
+                        } catch (err) {
+                          setProfileSaveError(getFriendlyAuthErrorMessage(err));
+                        } finally {
+                          setIsSavingProfile(false);
+                        }
+                      }}
+                      className="space-y-3 text-xs pt-1"
+                    >
+                      <div>
+                        <label className="block text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider mb-1">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={profileNameInput}
+                          onChange={(e) => setProfileNameInput(e.target.value)}
+                          placeholder="Your full name"
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E0D2] focus:border-[#6E121E] focus:outline-none text-xs text-[#2C2420]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider mb-1">
+                          Mobile / WhatsApp Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={profilePhoneInput}
+                          onChange={(e) => setProfilePhoneInput(e.target.value)}
+                          placeholder="+91 99485 34351"
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E0D2] focus:border-[#6E121E] focus:outline-none text-xs text-[#2C2420]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider mb-1">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          value={profileEmailInput}
+                          onChange={(e) => setProfileEmailInput(e.target.value)}
+                          placeholder="name@example.com"
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8E0D2] focus:border-[#6E121E] focus:outline-none text-xs text-[#2C2420]"
+                        />
+                      </div>
+
+                      <div className="pt-2 flex items-center gap-2">
+                        <button
+                          type="submit"
+                          disabled={isSavingProfile}
+                          className="py-2 px-4 rounded-xl bg-[#6E121E] hover:bg-[#821524] text-white text-xs font-semibold uppercase tracking-wider transition shadow-2xs cursor-pointer disabled:opacity-50"
+                        >
+                          {isSavingProfile ? "Saving..." : "Save Changes"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingProfile(false);
+                            setProfileSaveError(null);
+                          }}
+                          className="py-2 px-3 text-xs text-[#8C7A6B] hover:text-[#2C2420] transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <span className="text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider block">
+                          Full Name
+                        </span>
+                        <span className="font-bold text-sm text-[#1E1715]">
+                          {customerName || "Patron Member"}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider block">
+                          Email Address
+                        </span>
+                        <span className="font-medium text-sm text-[#1E1715]">
+                          {customerEmail || "Not provided"}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider block">
+                          Mobile / WhatsApp Number
+                        </span>
+                        <span className="font-medium text-sm text-[#1E1715] flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5 text-[#C5A059]" />
+                          <span>{customerPhone || "Not provided"}</span>
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[11px] text-[#8C7A6B] uppercase font-bold tracking-wider block">
+                          Account Role &amp; Access
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                          ✓ Verified Patron
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Quick Activity Summary */}

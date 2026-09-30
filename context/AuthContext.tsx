@@ -18,8 +18,10 @@ interface AuthContextType {
   isLoggedIn: boolean;
   customerName: string | null;
   customerEmail: string | null;
+  customerPhone: string | null;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUserProfile: (details: { fullName?: string; phone?: string; email?: string }) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -97,24 +99,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const updateUserProfile = useCallback(
+    async (details: { fullName?: string; phone?: string; email?: string }): Promise<User | null> => {
+      const supabase = createBrowserClient();
+      const updatePayload: {
+        data: Record<string, string>;
+        email?: string;
+      } = {
+        data: {},
+      };
+
+      if (details.fullName && details.fullName.trim()) {
+        updatePayload.data.full_name = details.fullName.trim();
+        updatePayload.data.name = details.fullName.trim();
+      }
+      if (details.phone && details.phone.trim()) {
+        updatePayload.data.phone = details.phone.trim();
+      }
+      if (details.email && details.email.trim()) {
+        updatePayload.email = details.email.trim();
+      }
+
+      const { data, error } = await supabase.auth.updateUser(updatePayload);
+      if (error) throw error;
+
+      if (data.user) {
+        setUser(data.user);
+      }
+      return data.user || null;
+    },
+    []
+  );
+
   const customerName = useMemo(() => {
     if (!user) return null;
     const meta = user.user_metadata;
-    if (meta?.full_name && typeof meta.full_name === "string") {
+    if (meta?.full_name && typeof meta.full_name === "string" && meta.full_name.trim()) {
       return meta.full_name.trim();
     }
-    if (meta?.name && typeof meta.name === "string") {
+    if (meta?.name && typeof meta.name === "string" && meta.name.trim()) {
       return meta.name.trim();
     }
     if (user.email) {
       const prefix = user.email.split("@")[0];
       return prefix.charAt(0).toUpperCase() + prefix.slice(1);
     }
+    if (user.phone) {
+      const digits = user.phone.replace(/[^0-9]/g, "");
+      return digits.length >= 10 ? `Patron (${digits.slice(-4)})` : user.phone;
+    }
     return "Patron";
   }, [user]);
 
   const customerEmail = useMemo(() => {
-    return user?.email || null;
+    return user?.email || user?.user_metadata?.email || null;
+  }, [user]);
+
+  const customerPhone = useMemo(() => {
+    return user?.phone || user?.user_metadata?.phone || null;
   }, [user]);
 
   const value = useMemo(
@@ -125,10 +167,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoggedIn: Boolean(user),
       customerName,
       customerEmail,
+      customerPhone,
       signOut,
       refreshUser,
+      updateUserProfile,
     }),
-    [user, session, isLoading, customerName, customerEmail, signOut, refreshUser]
+    [user, session, isLoading, customerName, customerEmail, customerPhone, signOut, refreshUser, updateUserProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

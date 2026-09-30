@@ -21,6 +21,7 @@ import Footer from "@/components/Footer";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { SHOP_CONFIG } from "@/config/shop";
+import { getAuthRedirectUrl, getFriendlyAuthErrorMessage } from "@/lib/supabase/auth";
 
 function SignupForm() {
   const router = useRouter();
@@ -127,31 +128,25 @@ function SignupForm() {
 
     try {
       const supabase = createBrowserClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const redirectTo = getAuthRedirectUrl(redirectPath);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}${redirectPath}`,
+          redirectTo,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent select_account",
+          },
         },
       });
 
       if (error) {
-        if (
-          error.message.toLowerCase().includes("provider is not enabled") ||
-          error.message.toLowerCase().includes("unsupported provider")
-        ) {
-          setAuthError(
-            "Google sign-in is not enabled in this Supabase project. Please register with your email and password."
-          );
-        } else {
-          setAuthError(error.message);
-        }
+        setAuthError(getFriendlyAuthErrorMessage(error));
         setIsSubmitting(false);
       }
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "An unexpected error occurred with Google sign up.";
-      setAuthError(msg);
+      console.error("Google sign up exception:", err);
+      setAuthError(getFriendlyAuthErrorMessage(err));
       setIsSubmitting(false);
     }
   };

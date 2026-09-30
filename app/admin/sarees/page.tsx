@@ -15,13 +15,12 @@ import {
   CheckCircle2,
   Star,
   Sparkles,
-  ExternalLink,
   Eye,
   SlidersHorizontal,
-  IndianRupee,
-  Check,
 } from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { InstagramIcon } from "@/components/icons/Instagram";
+import InstagramShareModal from "@/components/admin/InstagramShareModal";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { Saree, SareeCategory } from "@/types/saree";
 import {
@@ -58,6 +57,9 @@ export default function AdminSareesPage() {
   const [editFeatured, setEditFeatured] = useState(false);
   const [editNewArrival, setEditNewArrival] = useState(false);
   const [isSavingQuick, setIsSavingQuick] = useState(false);
+
+  // Instagram Marketing / Share Modal
+  const [instagramShareSaree, setInstagramShareSaree] = useState<Saree | null>(null);
 
   // Delete / Archive Modal
   const [sareeToDelete, setSareeToDelete] = useState<Saree | null>(null);
@@ -519,6 +521,16 @@ export default function AdminSareesPage() {
 
                             <button
                               type="button"
+                              onClick={() => setInstagramShareSaree(saree)}
+                              title="Instagram Marketing & Share"
+                              aria-label={`Share ${saree.name} on Instagram`}
+                              className="p-1.5 rounded-lg border border-[#E8E0D2] bg-white text-[#5A4E46] hover:text-[#DD2A7B] hover:bg-gradient-to-tr hover:from-amber-50 hover:to-rose-50 hover:border-rose-300 transition cursor-pointer"
+                            >
+                              <InstagramIcon className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => setSareeToDelete(saree)}
                               title="Delete saree"
                               className="p-1.5 rounded-lg border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 transition cursor-pointer"
@@ -686,6 +698,13 @@ export default function AdminSareesPage() {
           </div>
         </div>
       )}
+
+      {/* Instagram Share & Marketing Modal */}
+      <InstagramShareModal
+        saree={instagramShareSaree}
+        isOpen={Boolean(instagramShareSaree)}
+        onClose={() => setInstagramShareSaree(null)}
+      />
     </AdminLayout>
   );
 }

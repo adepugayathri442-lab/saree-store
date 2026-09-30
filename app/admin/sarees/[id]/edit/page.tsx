@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -26,8 +26,12 @@ import {
   Images,
   Plus,
   Palette,
+  Copy,
+  Check,
 } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
+import { InstagramIcon } from "@/components/icons/Instagram";
+import InstagramShareModal from "@/components/admin/InstagramShareModal";
 import { createBrowserClient } from "@/lib/supabase/client";
 import {
   fetchRawSareeByIdOrSku,
@@ -185,6 +189,41 @@ export default function EditSareePage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [duplicateSkuError, setDuplicateSkuError] = useState<string | null>(null);
   const [savedSaree, setSavedSaree] = useState<Saree | null>(null);
+
+  // Instagram Marketing / Share States
+  const [isInstagramShareOpen, setIsInstagramShareOpen] = useState(false);
+  const [sidebarCopiedLink, setSidebarCopiedLink] = useState(false);
+
+  const currentSareeForInstagram = useMemo<Saree | null>(() => {
+    if (!sareeDbId) return null;
+    return {
+      id: sareeDbId,
+      name: formData.name || "Saree",
+      sku: formData.sku || "",
+      category: formData.category,
+      categoryLabel:
+        formData.category === "heritage-silks"
+          ? "Pattu Sarees"
+          : formData.category === "contemporary-elegance"
+          ? "Fancy Sarees"
+          : "Daily Wear Sarees",
+      price: Number(formData.price) || 0,
+      fabric: formData.fabric || "",
+      craft: formData.craft || "",
+      zariType: formData.zari_type || "",
+      occasion: formData.occasion || "",
+      color: formData.color || "",
+      description: formData.description || "",
+      image: photos.find((p) => p.isCover)?.url || photos[0]?.url || "",
+      stockStatus: formData.stock_status,
+      stockQuantity: Number(formData.stock_quantity) || 0,
+      isNewArrival: formData.is_new_arrival,
+      isFeatured: formData.is_featured,
+      isBestSeller: formData.is_best_seller,
+      isLimitedStock: formData.is_limited_stock,
+      features: [],
+    };
+  }, [sareeDbId, formData, photos]);
 
   // Load existing saree data from Supabase on mount
   useEffect(() => {
@@ -1275,7 +1314,17 @@ export default function EditSareePage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsInstagramShareOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-rose-200 bg-white hover:bg-gradient-to-tr hover:from-amber-50 hover:to-rose-50 text-xs text-[#1E1715] hover:text-[#DD2A7B] transition font-medium cursor-pointer shadow-2xs"
+                      title="Instagram Marketing & Share"
+                    >
+                      <InstagramIcon className="w-3.5 h-3.5 text-[#DD2A7B]" />
+                      <span>Instagram Share</span>
+                    </button>
+
                     <Link
                       href={`/sarees/${sareeDbId}`}
                       target="_blank"
@@ -2714,11 +2763,104 @@ export default function EditSareePage() {
                         </p>
                       </div>
                     </div>
+
+                    {/* Dedicated Instagram Marketing & Share Section */}
+                    {sareeDbId && (
+                      <div className="bg-[#FAF7F2] rounded-3xl border border-[#C5A059]/40 p-5 sm:p-6 shadow-xs space-y-4">
+                        <div className="flex items-center justify-between pb-3 border-b border-[#E8E0D2]">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white flex items-center justify-center shadow-2xs">
+                              <InstagramIcon className="w-4 h-4 text-white" />
+                            </div>
+                            <h3 className="font-serif-luxury text-base font-bold text-[#1E1715]">
+                              Instagram Share
+                            </h3>
+                          </div>
+                          <span className="text-[10px] uppercase tracking-wider font-semibold bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full">
+                            Social
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-[#5A4E46] leading-relaxed">
+                          Quickly share this saree on your Instagram Stories, bio link, or direct messages.
+                        </p>
+
+                        <div className="space-y-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsInstagramShareOpen(true)}
+                            className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-95 text-white text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                          >
+                            <InstagramIcon className="w-4 h-4 text-white" />
+                            <span>Open Instagram Share Hub</span>
+                          </button>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const origin =
+                                  typeof window !== "undefined" && window.location.origin
+                                    ? window.location.origin
+                                    : "https://saisrujana.vercel.app";
+                                const url = `${origin}/sarees/${sareeDbId}`;
+                                try {
+                                  await navigator.clipboard.writeText(url);
+                                  setSidebarCopiedLink(true);
+                                  setTimeout(() => setSidebarCopiedLink(false), 2000);
+                                } catch (err) {
+                                  console.error("Clipboard copy error:", err);
+                                }
+                              }}
+                              className={`py-2 px-3 rounded-xl border border-[#E8E0D2] bg-white text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs ${
+                                sidebarCopiedLink
+                                  ? "text-emerald-700 font-bold"
+                                  : "text-[#1E1715] hover:bg-[#FAF6EE]"
+                              }`}
+                            >
+                              {sidebarCopiedLink ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>Copied!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5 text-[#6E121E]" />
+                                  <span>Copy Link</span>
+                                </>
+                              )}
+                            </button>
+
+                            <Link
+                              href={`/sarees/${sareeDbId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="py-2 px-3 rounded-xl border border-[#E8E0D2] bg-white hover:bg-[#FAF6EE] text-[#1E1715] text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 text-[#C5A059]" />
+                              <span>Preview</span>
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Link Sticker Note */}
+                        <p className="text-[10px] text-[#8C7A6B] bg-white/70 p-2.5 rounded-xl border border-[#E8E0D2] leading-relaxed">
+                          💡 <strong>Tip:</strong> Use the copied product link in an Instagram Story <strong>Link Sticker</strong> or bio link for clickable patron shopping.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
             )}
           </main>
+
+          {/* Instagram Share Modal */}
+          <InstagramShareModal
+            saree={currentSareeForInstagram}
+            isOpen={isInstagramShareOpen}
+            onClose={() => setIsInstagramShareOpen(false)}
+          />
 
           {/* Footer */}
           <footer className="border-t border-[#E8E0D2] bg-[#FAF7F2] py-4 text-center text-xs text-[#8C7A6B]">

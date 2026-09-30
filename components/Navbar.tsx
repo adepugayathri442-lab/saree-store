@@ -232,12 +232,12 @@ export default function Navbar({
             {/* Customer Account / Login */}
             <Link
               href={isLoggedIn ? "/account" : "/login"}
-              className="hover:text-white transition hidden sm:flex items-center gap-1.5 text-[#E5D2A4] font-medium"
-              title={isLoggedIn ? "My Account" : "Customer Login / Signup"}
+              className="hover:text-white transition flex items-center gap-1.5 text-[#E5D2A4] font-medium"
+              title={isLoggedIn ? "My Account" : "Customer Login / Sign Up"}
             >
-              <UserIcon className="w-3.5 h-3.5 text-[#C5A059]" />
-              <span className="max-w-[120px] truncate">
-                {isLoggedIn ? (customerName || "My Account") : "Login"}
+              <UserIcon className="w-3.5 h-3.5 text-[#C5A059] shrink-0" />
+              <span className="max-w-[120px] sm:max-w-[150px] truncate">
+                {isLoggedIn ? (customerName || "My Account") : "Login / Sign Up"}
               </span>
             </Link>
           </div>
@@ -448,15 +448,15 @@ export default function Navbar({
               ) : (
                 <Link
                   href="/login"
-                  aria-label="Customer Login"
-                  className="p-2 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group flex items-center gap-1.5 cursor-pointer"
-                  title="Login / Register"
+                  aria-label="Customer Login / Sign Up"
+                  className="p-1.5 sm:px-3 sm:py-1.5 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group flex items-center gap-1.5 cursor-pointer border border-transparent hover:border-[#C5A059]/40"
+                  title="Login / Sign Up"
                 >
-                  <UserIcon className="w-5 h-5 transition-transform duration-200 group-hover:scale-105" />
+                  <UserIcon className="w-5 h-5 text-[#6E121E] transition-transform duration-200 group-hover:scale-105" />
                   <span className="hidden sm:inline text-xs font-semibold text-[#6E121E]">
-                    Login
+                    Login / Sign Up
                   </span>
-                  <span className="sr-only">Login</span>
+                  <span className="sr-only">Login / Sign Up</span>
                 </Link>
               )}
 
@@ -651,13 +651,16 @@ export default function Navbar({
                 <Link
                   href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
+                  className="hover:text-[#6E121E] py-2.5 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
                 >
                   <span className="flex items-center gap-2">
                     <UserIcon className="w-4 h-4 text-[#6E121E]" />
-                    <span>Customer Login / Signup</span>
+                    <span className="font-semibold text-[#6E121E]">Login / Sign Up</span>
                   </span>
-                  <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
+                  <span className="text-[11px] font-semibold text-[#C5A059] flex items-center gap-1">
+                    <span>Sign In</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </Link>
               )}
               <Link
