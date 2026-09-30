@@ -212,7 +212,7 @@ export default function Hero({ initialSarees }: HeroProps) {
             </div>
 
             {/* Brand Title: Significantly larger, prominent & royal */}
-            <h1 className="font-serif-luxury text-5xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl text-[#1E1715] font-bold tracking-tight leading-[1.02] mb-2">
+            <h1 className="font-serif-luxury text-4xl min-[360px]:text-5xl sm:text-6xl md:text-7xl lg:text-7xl xl:text-8xl text-[#1E1715] font-bold tracking-tight leading-[1.02] mb-2">
               <span className="text-[#6E121E]">Sai</span>
               <span className="gold-gradient-text">Srujana</span>
             </h1>
@@ -359,7 +359,7 @@ export default function Hero({ initialSarees }: HeroProps) {
                           </div>
 
                           {/* Floating Bottom Card: Synchronized directly with each slide to eliminate text desync */}
-                          <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 z-20 bg-[#FAF7F2]/95 backdrop-blur-md p-3.5 sm:p-4 rounded-xl border border-[#C5A059]/40 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-4 z-20 bg-[#FAF7F2]/95 backdrop-blur-md p-2.5 sm:p-4 rounded-xl border border-[#C5A059]/40 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 mb-0.5">
                                 <span className="text-[10px] tracking-wider uppercase font-bold text-[#6E121E]">
@@ -371,7 +371,7 @@ export default function Hero({ initialSarees }: HeroProps) {
                                   </span>
                                 )}
                               </div>
-                              <h3 className="font-serif-luxury text-base sm:text-lg font-bold text-[#1E1715] truncate">
+                              <h3 className="font-serif-luxury text-sm sm:text-lg font-bold text-[#1E1715] truncate">
                                 {slide.displayName}
                               </h3>
                               <p className="text-[11px] sm:text-xs text-[#5A4E46] line-clamp-1 font-light">
@@ -379,9 +379,9 @@ export default function Hero({ initialSarees }: HeroProps) {
                               </p>
                             </div>
 
-                            <div className="flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#6E121E] hover:bg-[#821524] text-white text-xs font-semibold tracking-wider uppercase rounded-md shadow-md transition-all group/btn border border-[#821524]">
+                            <div className="flex-shrink-0 inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#6E121E] hover:bg-[#821524] text-white text-[11px] sm:text-xs font-semibold tracking-wider uppercase rounded-md shadow-md transition-all group/btn border border-[#821524]">
                               <span>Explore Collection</span>
-                              <ArrowRight className="w-3.5 h-3.5 text-[#E5D2A4] group-hover/btn:translate-x-1 transition-transform" />
+                              <ArrowRight className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#E5D2A4] group-hover/btn:translate-x-1 transition-transform" />
                             </div>
                           </div>
                         </Link>

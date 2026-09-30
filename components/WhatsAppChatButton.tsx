@@ -72,7 +72,7 @@ export default function WhatsAppChatButton({
 
   return (
     <div
-      className={`fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 flex items-center group select-none ${className}`}
+      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center group select-none ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

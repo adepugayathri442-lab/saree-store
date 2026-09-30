@@ -1038,7 +1038,7 @@ export default function SareeDetailView({ saree, relatedSarees }: SareeDetailVie
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 lg:gap-8">
               {relatedSarees.map((relSaree) => (
                 <SareeCard key={relSaree.id} saree={relSaree} />
               ))}
@@ -1071,39 +1071,39 @@ export default function SareeDetailView({ saree, relatedSarees }: SareeDetailVie
           className="fixed inset-0 z-50 flex flex-col bg-[#0C0A09]/95 backdrop-blur-md select-none animate-in fade-in duration-200 motion-reduce:transition-none"
         >
           {/* Top Header / Control Bar */}
-          <div className="flex-shrink-0 flex items-center justify-between px-4 sm:px-6 py-3.5 bg-black/50 border-b border-white/10 z-20">
+          <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 bg-black/50 border-b border-white/10 z-20">
             {/* Left: Product Info */}
-            <div className="min-w-0 pr-4">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-[#C5A059] truncate">
+            <div className="min-w-0 pr-2 sm:pr-4">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[9.5px] sm:text-xs font-semibold uppercase tracking-wider text-[#C5A059] truncate">
                   {saree.categoryLabel}
                 </span>
-                <span className="text-[10px] sm:text-xs font-mono text-stone-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                <span className="text-[9.5px] sm:text-xs font-mono text-stone-400 bg-white/5 px-1.5 sm:px-2 py-0.5 rounded border border-white/10">
                   {saree.sku}
                 </span>
               </div>
-              <h2 className="text-sm sm:text-base font-serif-luxury font-bold text-white truncate max-w-md">
+              <h2 className="text-xs sm:text-base font-serif-luxury font-bold text-white truncate max-w-[120px] min-[380px]:max-w-[180px] sm:max-w-md">
                 {saree.name}
               </h2>
             </div>
 
             {/* Right: Zoom Controls & Close Button */}
-            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Zoom Out Button */}
               <button
                 type="button"
                 onClick={handleZoomOut}
                 disabled={scale <= 1}
                 aria-label="Zoom out"
-                className="p-2 sm:px-3 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs flex items-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
+                className="p-1.5 sm:px-3 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs flex items-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
                 title="Zoom out (-)"
               >
-                <ZoomOut className="w-4 h-4" />
+                <ZoomOut className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 <span className="hidden md:inline">Zoom Out</span>
               </button>
 
               {/* Scale Indicator */}
-              <span className="px-2.5 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs font-mono font-medium text-[#C5A059] min-w-[52px] text-center">
+              <span className="px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-black/60 border border-white/10 text-[11px] sm:text-xs font-mono font-medium text-[#C5A059] min-w-[44px] sm:min-w-[52px] text-center">
                 {Math.round(scale * 100)}%
               </span>
 
@@ -1113,10 +1113,10 @@ export default function SareeDetailView({ saree, relatedSarees }: SareeDetailVie
                 onClick={handleZoomIn}
                 disabled={scale >= 4}
                 aria-label="Zoom in"
-                className="p-2 sm:px-3 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs flex items-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
+                className="p-1.5 sm:px-3 sm:py-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-white text-xs flex items-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
                 title="Zoom in (+)"
               >
-                <ZoomIn className="w-4 h-4" />
+                <ZoomIn className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 <span className="hidden md:inline">Zoom In</span>
               </button>
 
@@ -1126,13 +1126,13 @@ export default function SareeDetailView({ saree, relatedSarees }: SareeDetailVie
                 onClick={handleResetZoom}
                 disabled={scale === 1 && position.x === 0 && position.y === 0}
                 aria-label="Reset zoom to 100%"
-                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-stone-300 hover:text-white transition-colors border border-white/10 cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed text-stone-300 hover:text-white transition-colors border border-white/10 cursor-pointer"
                 title="Reset zoom (0)"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
               </button>
 
-              <div className="h-6 w-px bg-white/15 mx-1" />
+              <div className="h-5 sm:h-6 w-px bg-white/15 mx-0.5 sm:mx-1" />
 
               {/* Close Button */}
               <button
@@ -1140,10 +1140,10 @@ export default function SareeDetailView({ saree, relatedSarees }: SareeDetailVie
                 type="button"
                 onClick={handleCloseLightbox}
                 aria-label="Close fullscreen viewer"
-                className="p-2 sm:px-3 sm:py-2 rounded-lg bg-[#6E121E] hover:bg-[#821524] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-md border border-[#C5A059]/40 cursor-pointer"
+                className="p-1.5 sm:px-3 sm:py-2 rounded-lg bg-[#6E121E] hover:bg-[#821524] text-white text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition-colors shadow-md border border-[#C5A059]/40 cursor-pointer"
                 title="Close (Esc)"
               >
-                <X className="w-4 h-4 text-white" />
+                <X className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-white" />
                 <span className="hidden sm:inline">Close</span>
               </button>
             </div>

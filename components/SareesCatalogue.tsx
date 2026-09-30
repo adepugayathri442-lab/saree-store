@@ -1118,7 +1118,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
 
             {/* Product Cards Grid or Empty State */}
             {filteredAndSortedSarees.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-6">
                 {filteredAndSortedSarees.map((saree) => (
                   <SareeCard key={saree.id} saree={saree} />
                 ))}

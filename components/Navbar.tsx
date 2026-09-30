@@ -149,11 +149,11 @@ export default function Navbar({
   return (
     <>
       {/* Top Announcement & Quick Contact Bar (WhatsApp, Phone, Instagram, Contact) */}
-      <div className="bg-[#590D18] text-[#E5D2A4] text-xs py-2 px-4 border-b border-[#C5A059]/20 tracking-wider">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center text-center gap-2">
+      <div className="bg-[#590D18] text-[#E5D2A4] text-xs py-2 px-3 sm:px-4 border-b border-[#C5A059]/20 tracking-wider">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center text-center gap-1.5 sm:gap-2">
           {/* Location link */}
-          <div className="flex items-center gap-2 font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
+          <div className="flex items-center gap-1.5 sm:gap-2 font-medium text-[11px] sm:text-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#C5A059] shrink-0" />
             <a
               href={SHOP_CONFIG.googleMapsUrl}
               target="_blank"
@@ -161,13 +161,13 @@ export default function Navbar({
               className="hover:text-white transition flex items-center gap-1 text-[#E5D2A4]"
               title="View SaiSrujana location in Google Maps"
             >
-              <MapPin className="w-3.5 h-3.5 text-[#C5A059]" />
+              <MapPin className="w-3.5 h-3.5 text-[#C5A059] shrink-0" />
               <span>Armoor, Nizamabad, Telangana</span>
             </a>
           </div>
 
           {/* Quick Contact Links: WhatsApp, Phone, Instagram, Contact */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px] text-[#F4EFE6]/90">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-[11px] text-[#F4EFE6]/90">
             {/* WhatsApp */}
             <a
               href={generalWhatsAppUrl}

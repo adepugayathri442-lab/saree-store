@@ -40,7 +40,7 @@ export default function NewArrivals({ sarees = [] }: NewArrivalsProps) {
         </div>
 
         {/* Product Cards Grid using real SareeCard */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
           {displayedArrivals.map((saree) => (
             <SareeCard key={saree.id} saree={saree} />
           ))}

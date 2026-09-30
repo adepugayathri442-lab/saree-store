@@ -109,7 +109,7 @@ export default function ShopByOccasion({ sarees = [] }: ShopByOccasionProps) {
         </div>
 
         {/* Occasions Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6 lg:gap-8">
           {activeOccasions.map((occ) => (
             <Link
               key={occ.id}
@@ -135,28 +135,28 @@ export default function ShopByOccasion({ sarees = [] }: ShopByOccasionProps) {
                 </div>
 
                 {/* Bottom Overlay Title on Image */}
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <span className="text-[10px] font-bold text-[#E5D2A4] uppercase tracking-widest block mb-1">
+                <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 text-white">
+                  <span className="text-[9.5px] sm:text-[10px] font-bold text-[#E5D2A4] uppercase tracking-widest block mb-0.5 sm:mb-1">
                     {occ.tagline}
                   </span>
-                  <h3 className="font-serif-luxury text-xl sm:text-2xl font-bold leading-tight group-hover:text-[#FAF7F2]">
+                  <h3 className="font-serif-luxury text-base sm:text-xl lg:text-2xl font-bold leading-tight group-hover:text-[#FAF7F2]">
                     {occ.name}
                   </h3>
                 </div>
               </div>
 
               {/* Text Description and CTA */}
-              <div className="p-5 flex-1 flex flex-col justify-between bg-[#FAF7F2]">
-                <p className="text-xs text-[#5A4E46] leading-relaxed line-clamp-2 mb-4 font-light">
+              <div className="p-3 sm:p-5 flex-1 flex flex-col justify-between bg-[#FAF7F2]">
+                <p className="text-[11px] sm:text-xs text-[#5A4E46] leading-relaxed line-clamp-2 mb-3 sm:mb-4 font-light">
                   {occ.description}
                 </p>
 
-                <div className="pt-3 border-t border-[#E8E0D2] flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#6E121E] group-hover:text-[#C5A059] transition-colors">
+                <div className="pt-2.5 sm:pt-3 border-t border-[#E8E0D2] flex items-center justify-between">
+                  <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-[#6E121E] group-hover:text-[#C5A059] transition-colors">
                     Explore Sarees
                   </span>
-                  <div className="w-7 h-7 rounded-full bg-[#FAF0DC] group-hover:bg-[#6E121E] text-[#6E121E] group-hover:text-white flex items-center justify-center transition-colors">
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#FAF0DC] group-hover:bg-[#6E121E] text-[#6E121E] group-hover:text-white flex items-center justify-center transition-colors">
+                    <ArrowRight className="w-3 sm:w-3.5 h-3 sm:h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               </div>

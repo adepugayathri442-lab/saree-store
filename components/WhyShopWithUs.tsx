@@ -68,13 +68,13 @@ export default function WhyShopWithUs() {
         </div>
 
         {/* 6 Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
           {TRUST_FEATURES.map((feature, idx) => {
             const Icon = feature.icon;
             return (
               <div
                 key={idx}
-                className="bg-[#FDFBF7] p-8 rounded-2xl border border-[#E8E0D2] hover:border-[#C5A059]/60 hover:shadow-md transition-all duration-300 flex flex-col justify-between group"
+                className="bg-[#FDFBF7] p-5 sm:p-8 rounded-2xl border border-[#E8E0D2] hover:border-[#C5A059]/60 hover:shadow-md transition-all duration-300 flex flex-col justify-between group"
               >
                 <div>
                   <div className="w-12 h-12 rounded-xl bg-[#FAF0DC] group-hover:bg-[#6E121E] text-[#6E121E] group-hover:text-[#E5D2A4] flex items-center justify-center mb-5 transition-all duration-300 shadow-2xs">

@@ -149,30 +149,30 @@ export default function SareeCard({
         </div>
 
         {/* Saree Card Details */}
-        <div className="p-5">
-          <div className="flex items-center justify-between text-xs text-[#8C7A6B] mb-1.5">
-            <span className="font-medium text-[#C5A059] flex items-center gap-1">
-              <Tag className="w-3 h-3" /> {saree.categoryLabel}
+        <div className="p-3 sm:p-5">
+          <div className="flex items-center justify-between text-xs text-[#8C7A6B] mb-1 sm:mb-1.5">
+            <span className="font-medium text-[#C5A059] flex items-center gap-1 text-[11px] sm:text-xs truncate max-w-[65%]">
+              <Tag className="w-3 h-3 shrink-0" /> {saree.categoryLabel}
             </span>
-            <span className="text-[10px] text-[#8C7A6B]">{saree.sku}</span>
+            <span className="text-[9.5px] sm:text-[10px] text-[#8C7A6B] font-mono shrink-0">{saree.sku}</span>
           </div>
 
           <Link href={`/sarees/${saree.id}`}>
-            <h3 className="font-serif-luxury text-base sm:text-lg font-bold text-[#1E1715] leading-snug mb-2 group-hover:text-[#6E121E] transition-colors duration-250 line-clamp-1">
+            <h3 className="font-serif-luxury text-sm min-[360px]:text-base sm:text-lg font-bold text-[#1E1715] leading-snug mb-1 sm:mb-2 group-hover:text-[#6E121E] transition-colors duration-250 line-clamp-1">
               {saree.name}
             </h3>
           </Link>
 
-          <p className="text-xs text-[#5A4E46] line-clamp-2 mb-3 font-light">
+          <p className="text-[11px] sm:text-xs text-[#5A4E46] line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 font-light">
             {saree.description}
           </p>
 
-          <div className="flex items-baseline justify-between gap-2 mb-1">
-            <span className="text-sm font-semibold text-[#6E121E]">
+          <div className="flex items-baseline justify-between gap-1 sm:gap-2 mb-0.5 sm:mb-1">
+            <span className="text-xs min-[360px]:text-sm sm:text-base font-bold text-[#6E121E]">
               {formatCurrency(saree.price)}
             </span>
             <span
-              className={`text-[10.5px] font-medium px-2 py-0.5 rounded ${
+              className={`text-[9.5px] sm:text-[10.5px] font-medium px-1.5 sm:px-2 py-0.5 rounded truncate max-w-[55%] ${
                 isSoldOut
                   ? "bg-red-50 text-red-800 border border-red-200 font-semibold"
                   : saree.isLimitedStock
@@ -187,23 +187,23 @@ export default function SareeCard({
       </div>
 
       {/* Action Buttons: View Saree & WhatsApp Enquiry */}
-      <div className="p-5 pt-0 border-t border-[#E8E0D2]/50 mt-2 space-y-2">
+      <div className="p-3 sm:p-5 pt-0 border-t border-[#E8E0D2]/50 mt-1 sm:mt-2 space-y-1.5 sm:space-y-2">
         <Link
           href={`/sarees/${saree.id}`}
-          className="w-full py-2.5 px-3 rounded border border-[#6E121E] text-[#6E121E] hover:bg-[#6E121E] hover:text-white text-xs tracking-wider uppercase font-semibold btn-premium-outline flex items-center justify-center gap-2 group/btn"
+          className="w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded border border-[#6E121E] text-[#6E121E] hover:bg-[#6E121E] hover:text-white text-[10px] sm:text-xs tracking-wider uppercase font-semibold btn-premium-outline flex items-center justify-center gap-1.5 sm:gap-2 group/btn"
         >
           <span>View Saree</span>
-          <Eye className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform duration-200" />
+          <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 group-hover/btn:scale-110 transition-transform duration-200 shrink-0" />
         </Link>
 
         <a
           href={sareeWhatsAppUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full py-2.5 px-3 rounded bg-[#1E3F34] text-white text-xs font-semibold tracking-wider uppercase btn-premium-whatsapp flex items-center justify-center gap-1.5 shadow-xs"
+          className="w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded bg-[#1E3F34] text-white text-[10px] sm:text-xs font-semibold tracking-wider uppercase btn-premium-whatsapp flex items-center justify-center gap-1 sm:gap-1.5 shadow-xs"
         >
-          <MessageCircle className="w-3.5 h-3.5 text-[#A7F3D0]" />
-          <span>WhatsApp Enquiry</span>
+          <MessageCircle className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#A7F3D0] shrink-0" />
+          <span className="truncate">WhatsApp Enquiry</span>
         </a>
       </div>
     </div>
