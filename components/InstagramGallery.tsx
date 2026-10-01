@@ -22,8 +22,13 @@ export default function InstagramGallery({
   sarees = [],
   className = "",
 }: InstagramGalleryProps) {
-  // Use real sarees from database; fallback to featured curated items if DB list is empty
-  const displaySarees = (sarees && sarees.length > 0 ? sarees : FEATURED_SAREES).slice(0, 6);
+  const displaySarees = (
+    sarees && sarees.length > 0
+      ? sarees
+      : !process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? FEATURED_SAREES
+      : []
+  ).slice(0, 6);
 
   if (displaySarees.length === 0) return null;
 

@@ -23,6 +23,7 @@ import { createBrowserClient } from "@/lib/supabase/client";
 import { Saree } from "@/types/saree";
 import { mapDbRowToSaree, DbSareeRow, updateSareeInDb } from "@/lib/supabase/sarees";
 import { formatCurrency, SHOP_CONFIG } from "@/config/shop";
+import { revalidateSareeCache } from "@/app/actions/sarees";
 
 interface HomepageContentConfig {
   announcementText: string;
@@ -111,6 +112,7 @@ export default function AdminHomepagePage() {
       );
       setToastMessage(`"${saree.name}" ${newValue ? "added to" : "removed from"} Featured Collection.`);
       setTimeout(() => setToastMessage(null), 3000);
+      revalidateSareeCache(saree.id).catch(() => {});
     } catch {
       alert("Error toggling featured status");
     } finally {
@@ -134,6 +136,7 @@ export default function AdminHomepagePage() {
       );
       setToastMessage(`"${saree.name}" ${newValue ? "marked as" : "removed from"} New Arrivals.`);
       setTimeout(() => setToastMessage(null), 3000);
+      revalidateSareeCache(saree.id).catch(() => {});
     } catch {
       alert("Error toggling new arrival status");
     } finally {

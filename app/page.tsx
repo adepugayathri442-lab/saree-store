@@ -33,10 +33,10 @@ export default function Home() {
 
   useEffect(() => {
     let isMounted = true;
+    const supabase = createBrowserClient();
 
     async function loadSarees() {
       try {
-        const supabase = createBrowserClient();
         const { data, error } = await supabase
           .from("sarees")
           .select("*")
@@ -44,17 +44,13 @@ export default function Home() {
 
         if (!isMounted) return;
 
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           setSarees((data as DbSareeRow[]).map(mapDbRowToSaree));
-        } else if (error) {
-          console.warn("Supabase sarees notice (using curated boutique fallback):", error.message);
-          setSarees(FEATURED_SAREES);
-        } else {
+        } else if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
           setSarees(FEATURED_SAREES);
         }
-      } catch (err) {
-        console.warn("Homepage sarees notice (using curated boutique fallback):", err);
-        if (isMounted) {
+      } catch {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL && isMounted) {
           setSarees(FEATURED_SAREES);
         }
       }
@@ -62,8 +58,80 @@ export default function Home() {
 
     loadSarees();
 
+    // 1. Supabase Realtime subscription on public.sarees for live deletion sync
+    const channel = supabase
+      .channel("public:sarees:homepage")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sarees" },
+        (payload) => {
+          if (payload.eventType === "DELETE") {
+            const deletedId = (payload.old as { id?: string })?.id;
+            if (deletedId) {
+              setSarees((prev) => prev.filter((s) => s.id !== deletedId));
+            } else {
+              loadSarees();
+            }
+          } else {
+            loadSarees();
+          }
+        }
+      )
+      .subscribe();
+
+    // 2. Custom local window event from Admin deletion (instant 0ms update)
+    const handleLocalDeleted = (e: Event) => {
+      const customEvent = e as CustomEvent<{ id?: string; sku?: string }>;
+      const delId = customEvent.detail?.id;
+      const delSku = customEvent.detail?.sku;
+      if (delId || delSku) {
+        setSarees((prev) =>
+          prev.filter((s) => s.id !== delId && (!delSku || s.sku !== delSku))
+        );
+      } else {
+        loadSarees();
+      }
+    };
+
+    // 3. Cross-tab storage event
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "saisrujana:saree-deleted") {
+        try {
+          const parsed = JSON.parse(e.newValue || "{}");
+          if (parsed.id || parsed.sku) {
+            setSarees((prev) =>
+              prev.filter(
+                (s) => s.id !== parsed.id && (!parsed.sku || s.sku !== parsed.sku)
+              )
+            );
+          } else {
+            loadSarees();
+          }
+        } catch {
+          loadSarees();
+        }
+      }
+    };
+
+    // 4. Focus & visibility sync
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        loadSarees();
+      }
+    };
+
+    window.addEventListener("saisrujana:saree-deleted", handleLocalDeleted);
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("focus", loadSarees);
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       isMounted = false;
+      supabase.removeChannel(channel);
+      window.removeEventListener("saisrujana:saree-deleted", handleLocalDeleted);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("focus", loadSarees);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 

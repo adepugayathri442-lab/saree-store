@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { createBrowserClient } from "@/lib/supabase/client";
 import {
   Search,
   SlidersHorizontal,
@@ -18,7 +19,6 @@ import {
 import SareeCard from "@/components/SareeCard";
 import ImageSareeSearch from "@/components/ImageSareeSearch";
 import { Saree, SareeCategory } from "@/types/saree";
-import { FEATURED_SAREES } from "@/data/sarees";
 import { SHOP_CONFIG, getWhatsAppUrl } from "@/config/shop";
 
 export type SortOption = "default" | "price-asc" | "price-desc" | "newest";
@@ -127,6 +127,74 @@ interface SareesCatalogueProps {
 }
 
 export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueProps) {
+  const [sareesList, setSareesList] = useState<Saree[]>(initialSarees);
+
+  // Keep state synchronized when initialSarees prop changes via server revalidation
+  useEffect(() => {
+    setSareesList(initialSarees);
+  }, [initialSarees]);
+
+  // Real-time and cross-tab deletion sync
+  useEffect(() => {
+    const supabase = createBrowserClient();
+
+    // 1. Supabase Realtime channel
+    const channel = supabase
+      .channel("public:sarees:catalogue")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sarees" },
+        (payload) => {
+          if (payload.eventType === "DELETE") {
+            const deletedId = (payload.old as { id?: string })?.id;
+            if (deletedId) {
+              setSareesList((prev) => prev.filter((s) => s.id !== deletedId));
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // 2. Local window event
+    const handleDeleted = (e: Event) => {
+      const customEvent = e as CustomEvent<{ id?: string; sku?: string }>;
+      const delId = customEvent.detail?.id;
+      const delSku = customEvent.detail?.sku;
+      if (delId || delSku) {
+        setSareesList((prev) =>
+          prev.filter((s) => s.id !== delId && (!delSku || s.sku !== delSku))
+        );
+      }
+    };
+
+    // 3. Storage event
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "saisrujana:saree-deleted") {
+        try {
+          const parsed = JSON.parse(e.newValue || "{}");
+          if (parsed.id || parsed.sku) {
+            setSareesList((prev) =>
+              prev.filter(
+                (s) => s.id !== parsed.id && (!parsed.sku || s.sku !== parsed.sku)
+              )
+            );
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    window.addEventListener("saisrujana:saree-deleted", handleDeleted);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener("saisrujana:saree-deleted", handleDeleted);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   const searchParams = useSearchParams();
   const urlCategory = searchParams.get("category") as SareeCategory | null;
   const urlPriceRange = searchParams.get("priceRange") as PriceRangeId | null;
@@ -152,16 +220,16 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
 
   // Dynamically extract available colors, fabrics, and occasions from actual saree data
   const availableColors = useMemo(
-    () => extractFilterOptions(initialSarees, "color"),
-    [initialSarees]
+    () => extractFilterOptions(sareesList, "color"),
+    [sareesList]
   );
   const availableFabrics = useMemo(
-    () => extractFilterOptions(initialSarees, "fabric"),
-    [initialSarees]
+    () => extractFilterOptions(sareesList, "fabric"),
+    [sareesList]
   );
   const availableOccasions = useMemo(
-    () => extractFilterOptions(initialSarees, "occasion"),
-    [initialSarees]
+    () => extractFilterOptions(sareesList, "occasion"),
+    [sareesList]
   );
 
   const toggleColor = (color: string) => {
@@ -217,7 +285,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
 
   // Filter and sort sarees using combined multi-criteria logic
   const filteredAndSortedSarees = useMemo(() => {
-    let result = [...initialSarees];
+    let result = [...sareesList];
 
     // 1. Filter by category
     if (selectedCategory !== "all") {
@@ -314,7 +382,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
 
     return result;
   }, [
-    initialSarees,
+    sareesList,
     selectedCategory,
     selectedPriceRange,
     inStockOnly,
@@ -439,7 +507,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
           <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
             {availableColors.map((color) => {
               const isSelected = selectedColors.includes(color);
-              const count = initialSarees.filter((s) => matchesAttribute(s.color, [color])).length;
+              const count = sareesList.filter((s) => matchesAttribute(s.color, [color])).length;
               const colorDot = getColorHex(color);
 
               return (
@@ -506,7 +574,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
           <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
             {availableFabrics.map((fabric) => {
               const isSelected = selectedFabrics.includes(fabric);
-              const count = initialSarees.filter((s) => matchesAttribute(s.fabric, [fabric])).length;
+              const count = sareesList.filter((s) => matchesAttribute(s.fabric, [fabric])).length;
 
               return (
                 <label
@@ -566,7 +634,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
           <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
             {availableOccasions.map((occasion) => {
               const isSelected = selectedOccasions.includes(occasion);
-              const count = initialSarees.filter((s) => matchesAttribute(s.occasion, [occasion])).length;
+              const count = sareesList.filter((s) => matchesAttribute(s.occasion, [occasion])).length;
 
               return (
                 <label
@@ -843,7 +911,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
 
                 {/* Search by Image Button / Component */}
                 <ImageSareeSearch
-                  catalogueSarees={initialSarees.length > 0 ? initialSarees : FEATURED_SAREES}
+                  catalogueSarees={sareesList}
                 />
 
                 {/* Mobile Filters Drawer Trigger & Sort Dropdown */}
@@ -1104,9 +1172,9 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
                   {filteredAndSortedSarees.length}
                 </strong>{" "}
                 {filteredAndSortedSarees.length === 1 ? "saree" : "sarees"}
-                {initialSarees.length > 0 &&
-                  filteredAndSortedSarees.length !== initialSarees.length && (
-                    <span> (out of {initialSarees.length})</span>
+                {sareesList.length > 0 &&
+                  filteredAndSortedSarees.length !== sareesList.length && (
+                    <span> (out of {sareesList.length})</span>
                   )}
               </div>
 
@@ -1123,7 +1191,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
                   <SareeCard key={saree.id} saree={saree} />
                 ))}
               </div>
-            ) : initialSarees.length === 0 ? (
+            ) : sareesList.length === 0 ? (
               /* Database empty state */
               <div className="bg-[#FAF7F2] rounded-2xl border border-[#E8E0D2] p-10 sm:p-14 text-center my-6 shadow-sm">
                 <div className="w-14 h-14 rounded-full bg-[#F4EFE6] border border-[#C5A059]/30 flex items-center justify-center mx-auto mb-3 text-[#C5A059]">

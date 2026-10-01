@@ -115,6 +115,58 @@ export function trackRecentlyViewed(saree: Saree): void {
 }
 
 /**
+ * Removes a specific saree from recently viewed tracking and companion cache.
+ */
+export function removeRecentlyViewedSaree(id: string): void {
+  if (typeof window === "undefined" || !id) return;
+  try {
+    const raw = localStorage.getItem(RECENTLY_VIEWED_STORAGE_KEY) || "[]";
+    const parsed = JSON.parse(raw);
+    const currentIds: string[] = Array.isArray(parsed) ? parsed : [];
+    const updatedIds = currentIds.filter((item) => item !== id);
+    const updatedRaw = JSON.stringify(updatedIds);
+
+    cachedRawIds = updatedRaw;
+    cachedIds = updatedIds;
+    localStorage.setItem(RECENTLY_VIEWED_STORAGE_KEY, updatedRaw);
+
+    const rawCache = localStorage.getItem(RECENTLY_VIEWED_CACHE_KEY) || "{}";
+    const cache: Record<string, Saree> = JSON.parse(rawCache);
+    delete cache[id];
+    localStorage.setItem(RECENTLY_VIEWED_CACHE_KEY, JSON.stringify(cache));
+
+    window.dispatchEvent(new Event("saisrujana_recently_viewed_change"));
+  } catch (err) {
+    console.error("Failed to remove recently viewed saree:", err);
+  }
+}
+
+// Auto-listen to saree deletion events across tabs and local windows
+if (typeof window !== "undefined") {
+  window.addEventListener("saisrujana:saree-deleted", (e: Event) => {
+    const custom = e as CustomEvent<{ id?: string; sku?: string }>;
+    if (custom.detail?.id) {
+      removeRecentlyViewedSaree(custom.detail.id);
+    }
+    if (custom.detail?.sku) {
+      removeRecentlyViewedSaree(custom.detail.sku);
+    }
+  });
+
+  window.addEventListener("storage", (e: StorageEvent) => {
+    if (e.key === "saisrujana:saree-deleted" && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (parsed.id) removeRecentlyViewedSaree(parsed.id);
+        if (parsed.sku) removeRecentlyViewedSaree(parsed.sku);
+      } catch {
+        // ignore
+      }
+    }
+  });
+}
+
+/**
  * Clears all recently viewed items.
  */
 export function clearRecentlyViewed(): void {
@@ -166,7 +218,7 @@ export async function resolveRecentlyViewedSarees(ids: string[]): Promise<Saree[
     if (cacheMap.has(id)) {
       resolvedMap.set(id, cacheMap.get(id)!);
     } else {
-      const localSaree = getSareeById(id);
+      const localSaree = !process.env.NEXT_PUBLIC_SUPABASE_URL ? getSareeById(id) : null;
       if (localSaree) {
         resolvedMap.set(id, localSaree);
       } else {

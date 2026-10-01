@@ -25,7 +25,7 @@ export async function generateMetadata({
   const { id } = await params;
   let saree = await fetchSareeByIdFromDb(id);
 
-  if (!saree) {
+  if (!saree && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
     saree = getSareeById(id) || null;
   }
 
@@ -85,7 +85,7 @@ export default async function SareeDetailPage({ params }: SareePageProps) {
   const { id } = await params;
   let saree = await fetchSareeByIdFromDb(id);
 
-  if (!saree) {
+  if (!saree && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
     saree = getSareeById(id) || null;
   }
 
@@ -111,7 +111,7 @@ export default async function SareeDetailPage({ params }: SareePageProps) {
       );
       relatedSarees = [...sameCategory, ...otherCategories].slice(0, 3);
     }
-  } else {
+  } else if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     relatedSarees = getRelatedSarees(saree.id, saree.category, 3);
   }
 

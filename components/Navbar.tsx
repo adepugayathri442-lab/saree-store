@@ -128,7 +128,12 @@ export default function Navbar({
 
 
 
-  const availableSarees = sarees && sarees.length > 0 ? sarees : FEATURED_SAREES;
+  const availableSarees =
+    sarees && sarees.length > 0
+      ? sarees
+      : !process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? FEATURED_SAREES
+      : [];
 
   const filteredSarees = searchQuery.trim()
     ? availableSarees.filter(

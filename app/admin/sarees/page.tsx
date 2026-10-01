@@ -18,6 +18,7 @@ import {
   Eye,
   SlidersHorizontal,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { InstagramIcon } from "@/components/icons/Instagram";
 import InstagramShareModal from "@/components/admin/InstagramShareModal";
@@ -30,6 +31,8 @@ import {
   updateSareeInDb,
 } from "@/lib/supabase/sarees";
 import { formatCurrency, SHOP_CONFIG } from "@/config/shop";
+import { revalidateSareeCache } from "@/app/actions/sarees";
+import { removeRecentlyViewedSaree } from "@/lib/recentlyViewed";
 
 const CATEGORY_TABS: { value: SareeCategory | "all"; label: string }[] = [
   { value: "all", label: "All Sarees" },
@@ -39,6 +42,7 @@ const CATEGORY_TABS: { value: SareeCategory | "all"; label: string }[] = [
 ];
 
 export default function AdminSareesPage() {
+  const router = useRouter();
   const [sarees, setSarees] = useState<Saree[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -193,6 +197,14 @@ export default function AdminSareesPage() {
       setToastMessage(`Updated "${quickEditSaree.name}" successfully.`);
       setTimeout(() => setToastMessage(null), 3000);
       setQuickEditSaree(null);
+
+      // Revalidate Next.js cache and refresh router
+      try {
+        await revalidateSareeCache(quickEditSaree.id);
+        router.refresh();
+      } catch {
+        // non-blocking
+      }
     } catch (err) {
       console.error("Quick edit save error:", err);
       alert("Unexpected error updating saree");
@@ -201,24 +213,58 @@ export default function AdminSareesPage() {
     }
   };
 
-  // Safe Deletion
+  // Safe Deletion with immediate cache invalidation and client-side sync
   const handleConfirmDelete = async () => {
     if (!sareeToDelete) return;
     setIsDeleting(true);
     setDeleteError(null);
 
+    const deletedId = sareeToDelete.id;
+    const deletedSku = sareeToDelete.sku;
+    const deletedName = sareeToDelete.name;
+
     try {
-      const res = await deleteSareeFromDb(sareeToDelete.id);
+      const res = await deleteSareeFromDb(deletedId);
       if (!res.success) {
         setDeleteError(res.error?.message || "Failed to delete saree from database");
         setIsDeleting(false);
         return;
       }
 
-      setSarees((prev) => prev.filter((s) => s.id !== sareeToDelete.id));
-      setToastMessage(`Saree "${sareeToDelete.name}" removed from catalogue.`);
+      // 1. Immediately invalidate Next.js server cache for customer routes
+      try {
+        await revalidateSareeCache(deletedId);
+      } catch (revErr) {
+        console.warn("Revalidation warning:", revErr);
+      }
+
+      // 2. Broadcast real-time deletion event to open customer tabs & windows
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("saisrujana:saree-deleted", {
+            detail: { id: deletedId, sku: deletedSku },
+          })
+        );
+        localStorage.setItem(
+          "saisrujana:saree-deleted",
+          JSON.stringify({ id: deletedId, sku: deletedSku, ts: Date.now() })
+        );
+      }
+
+      // 3. Purge from local recently viewed storage
+      removeRecentlyViewedSaree(deletedId);
+      if (deletedSku) {
+        removeRecentlyViewedSaree(deletedSku);
+      }
+
+      // 4. Update local admin table state
+      setSarees((prev) => prev.filter((s) => s.id !== deletedId));
+      setToastMessage(`Saree "${deletedName}" removed from catalogue.`);
       setTimeout(() => setToastMessage(null), 3000);
       setSareeToDelete(null);
+
+      // 5. Invalidate Next.js client-side router cache
+      router.refresh();
     } catch {
       setDeleteError("Unexpected error deleting saree");
     } finally {
@@ -369,6 +415,15 @@ export default function AdminSareesPage() {
             </div>
           </div>
         </div>
+
+        {error && (
+          <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs flex items-center justify-between">
+            <span>{error}</span>
+            <button type="button" onClick={() => loadSarees()} className="underline font-semibold cursor-pointer">
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* Sarees Table */}
         <div className="bg-white rounded-3xl border border-[#E8E0D2] shadow-2xs overflow-hidden">

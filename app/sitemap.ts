@@ -2,12 +2,13 @@ import { MetadataRoute } from "next";
 import { fetchSareesFromDb } from "@/lib/supabase/sarees";
 import { FEATURED_SAREES } from "@/data/sarees";
 
+export const dynamic = "force-dynamic";
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://saisrujana.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Fetch real sarees from Supabase database, fall back to initial data if DB is empty
   let sarees = await fetchSareesFromDb();
-  if (!sarees || sarees.length === 0) {
+  if ((!sarees || sarees.length === 0) && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
     sarees = FEATURED_SAREES;
   }
 

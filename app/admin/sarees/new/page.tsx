@@ -27,6 +27,7 @@ import {
 import AdminGuard from "@/components/admin/AdminGuard";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { insertSareeIntoDb } from "@/lib/supabase/sarees";
+import { revalidateSareeCache } from "@/app/actions/sarees";
 import {
   validateSareeImage,
   uploadSareeImage,
@@ -712,6 +713,9 @@ export default function AddNewSareePage() {
         }
 
         setSavedSaree(result.data);
+
+        // Invalidate Next.js cache so customer website reflects the new saree immediately
+        revalidateSareeCache(result.data.id).catch(() => {});
       }
     } catch (err: unknown) {
       const msg =

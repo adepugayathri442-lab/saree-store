@@ -55,7 +55,20 @@ function getSupabaseServerClient(): SupabaseClient | null {
   }
 
   if (!serverClientInstance) {
-    serverClientInstance = createClient(url, key);
+    serverClientInstance = createClient(url, key, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+      global: {
+        fetch: (input, init) => {
+          return fetch(input, {
+            ...init,
+            cache: "no-store",
+          });
+        },
+      },
+    });
   }
 
   return serverClientInstance;
@@ -787,6 +800,19 @@ export async function deleteSareeFromDb(
         await deleteSareeVideo(videoUrl, client);
       } catch (videoErr) {
         console.warn("Storage video deletion warning (non-fatal):", videoErr);
+      }
+    }
+
+    // 4. Trigger revalidation on the server if executed in the browser
+    if (typeof window !== "undefined") {
+      try {
+        fetch("/api/revalidate-sarees", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: trimmedId }),
+        }).catch((e) => console.warn("API revalidation fetch notice:", e));
+      } catch {
+        // non-blocking
       }
     }
 

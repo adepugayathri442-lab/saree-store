@@ -37,6 +37,7 @@ import {
   fetchRawSareeByIdOrSku,
   updateSareeInDb,
 } from "@/lib/supabase/sarees";
+import { revalidateSareeCache } from "@/app/actions/sarees";
 import {
   fetchVariantsBySareeId,
   createSareeVariant,
@@ -1107,6 +1108,9 @@ export default function EditSareePage() {
         setVideoFile(null);
         setRemoveExistingVideo(false);
         setOriginalSnapshot({ ...formData });
+
+        // Invalidate Next.js cache so customer website reflects updates immediately
+        revalidateSareeCache(sareeDbId).catch(() => {});
 
         if (typeof window !== "undefined") {
           window.scrollTo({ top: 0, behavior: "smooth" });

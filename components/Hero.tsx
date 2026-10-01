@@ -119,6 +119,32 @@ export default function Hero({ initialSarees }: HeroProps) {
     };
   }, []);
 
+  // Sync with prop updates from homepage
+  useEffect(() => {
+    if (initialSarees) {
+      setDbSarees(initialSarees);
+    }
+  }, [initialSarees]);
+
+  // Listen to immediate saree deletion events
+  useEffect(() => {
+    const handleDeleted = (e: Event) => {
+      const customEvent = e as CustomEvent<{ id?: string; sku?: string }>;
+      const delId = customEvent.detail?.id;
+      const delSku = customEvent.detail?.sku;
+      if (delId || delSku) {
+        setDbSarees((prev) =>
+          prev.filter((s) => s.id !== delId && (!delSku || s.sku !== delSku))
+        );
+      }
+    };
+
+    window.addEventListener("saisrujana:saree-deleted", handleDeleted);
+    return () => {
+      window.removeEventListener("saisrujana:saree-deleted", handleDeleted);
+    };
+  }, []);
+
 
 
   // Map each slide config to real Supabase product when available
