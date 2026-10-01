@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Sparkles, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { getFriendlyAuthErrorMessage, isProfileComplete } from "@/lib/supabase/auth";
+import { getFriendlyAuthErrorMessage } from "@/lib/supabase/auth";
 import { SHOP_CONFIG } from "@/config/shop";
 
 function CallbackHandler() {
@@ -51,11 +51,7 @@ function CallbackHandler() {
           if (data.session) {
             await refreshUser();
             if (isMounted) {
-              if (!isProfileComplete(data.user)) {
-                router.replace(`/complete-profile?redirect=${encodeURIComponent(next)}`);
-              } else {
-                router.replace(next);
-              }
+              router.replace(next);
             }
             return;
           }
@@ -69,11 +65,7 @@ function CallbackHandler() {
         if (session?.user) {
           await refreshUser();
           if (isMounted) {
-            if (!isProfileComplete(session.user)) {
-              router.replace(`/complete-profile?redirect=${encodeURIComponent(next)}`);
-            } else {
-              router.replace(next);
-            }
+            router.replace(next);
           }
           return;
         }
@@ -86,11 +78,7 @@ function CallbackHandler() {
             subscription.unsubscribe();
             await refreshUser();
             if (isMounted) {
-              if (!isProfileComplete(newSession.user)) {
-                router.replace(`/complete-profile?redirect=${encodeURIComponent(next)}`);
-              } else {
-                router.replace(next);
-              }
+              router.replace(next);
             }
           }
         });
