@@ -285,10 +285,10 @@ export default function Navbar({
 
       {/* Main Sticky Navbar */}
       <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E8E0D2] transition-all">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2 min-[360px]:px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Mobile Menu Button - Fixed in top-left */}
-            <div className="flex items-center lg:hidden">
+            <div className="flex items-center lg:hidden shrink-0">
               <button
                 ref={mobileButtonRef}
                 type="button"
@@ -296,23 +296,29 @@ export default function Navbar({
                 aria-expanded={isMobileMenuOpen}
                 aria-controls="mobile-navigation-panel"
                 aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-                className="p-2 -ml-1 rounded-xl text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] focus:outline-none transition cursor-pointer"
+                className="p-1.5 min-[360px]:p-2 -ml-1 rounded-xl text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] focus:outline-none transition cursor-pointer"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-6 h-6 text-[#6E121E]" />
+                  <X className="w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 text-[#6E121E]" />
                 ) : (
-                  <Menu className="w-6 h-6 text-[#2C2420]" />
+                  <Menu className="w-5 h-5 min-[360px]:w-6 min-[360px]:h-6 text-[#2C2420]" />
                 )}
               </button>
             </div>
 
-            {/* Brand Logo & Name */}
-            <div className="flex-1 lg:flex-none flex items-center justify-center lg:justify-start min-w-0 px-1">
-              <Link href="/" className="group flex flex-col items-center lg:items-start text-center lg:text-left">
-                <span className="font-serif-luxury text-xl min-[360px]:text-2xl sm:text-3xl tracking-[0.10em] min-[360px]:tracking-[0.16em] font-bold text-[#6E121E] group-hover:text-[#821524] transition truncate">
+            {/* Brand Logo & Tagline as one cohesive centered block */}
+            <div className="flex-1 lg:flex-none flex items-center justify-center lg:justify-start min-w-0 px-1 sm:px-2">
+              <Link
+                href="/"
+                className="group flex flex-col items-center lg:items-start text-center lg:text-left max-w-full"
+              >
+                {/* Top Row: SaiSrujana Logo */}
+                <span className="font-serif-luxury text-lg min-[360px]:text-xl min-[390px]:text-2xl sm:text-3xl tracking-[0.08em] min-[360px]:tracking-[0.12em] sm:tracking-[0.16em] font-bold text-[#6E121E] group-hover:text-[#821524] transition-colors truncate block leading-tight">
                   {SHOP_CONFIG.brandName}
                 </span>
-                <span className="text-[8px] min-[360px]:text-[10px] tracking-[0.18em] min-[360px]:tracking-[0.28em] text-[#8C7A6B] uppercase -mt-0.5 font-medium truncate">
+
+                {/* Second Line Directly Under Brand: Tagline */}
+                <span className="text-[6.5px] min-[340px]:text-[7px] min-[360px]:text-[8px] min-[390px]:text-[9px] sm:text-[10px] tracking-[0.04em] min-[340px]:tracking-[0.06em] min-[360px]:tracking-[0.12em] sm:tracking-[0.28em] text-[#8C7A6B] uppercase font-medium truncate block leading-normal mt-0.5">
                   {SHOP_CONFIG.tagline}
                 </span>
               </Link>
@@ -338,16 +344,16 @@ export default function Navbar({
             </nav>
 
             {/* Right Action Icons (Search, Cart & WhatsApp CTA) */}
-            <div className="flex items-center space-x-1.5 min-[360px]:space-x-2.5 sm:space-x-5 shrink-0">
+            <div className="flex items-center space-x-1 min-[360px]:space-x-1.5 sm:space-x-5 shrink-0">
               {/* Search Icon */}
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Search Sarees"
-                className="p-2 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group"
+                className="p-1.5 min-[360px]:p-2 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group"
                 title="Search Sarees"
               >
-                <Search className="w-5 h-5 transition-transform duration-200 group-hover:scale-105" />
+                <Search className="w-4.5 h-4.5 min-[360px]:w-5 min-[360px]:h-5 transition-transform duration-200 group-hover:scale-105" />
                 <span className="sr-only">Search</span>
               </button>
 
@@ -359,7 +365,7 @@ export default function Navbar({
                     onClick={() => setIsUserDropdownOpen((prev) => !prev)}
                     aria-label={`My Account (${customerName || "Customer"})`}
                     aria-expanded={isUserDropdownOpen}
-                    className="p-1.5 sm:px-3 sm:py-1.5 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] rounded-full transition-all duration-200 flex items-center gap-1.5 cursor-pointer border border-transparent hover:border-[#C5A059]/40 relative"
+                    className="p-1 min-[360px]:p-1.5 sm:px-3 sm:py-1.5 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] rounded-full transition-all duration-200 flex items-center gap-1.5 cursor-pointer border border-transparent hover:border-[#C5A059]/40 relative"
                     title={`My Account (${customerName || "Customer"})`}
                   >
                     <div className="w-7 h-7 rounded-full bg-[#6E121E] text-[#E5D2A4] font-serif-luxury font-bold text-xs flex items-center justify-center border border-[#C5A059]/50 shadow-2xs relative">
@@ -491,7 +497,7 @@ export default function Navbar({
                 <Link
                   href="/login"
                   aria-label="Customer Login / Sign Up"
-                  className="p-1.5 sm:px-3 sm:py-1.5 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group flex items-center gap-1.5 cursor-pointer border border-transparent hover:border-[#C5A059]/40"
+                  className="p-1 min-[360px]:p-1.5 sm:px-3 sm:py-1.5 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group flex items-center gap-1.5 cursor-pointer border border-transparent hover:border-[#C5A059]/40"
                   title="Login / Sign Up"
                 >
                   <UserIcon className="w-5 h-5 text-[#6E121E] transition-transform duration-200 group-hover:scale-105" />
@@ -506,7 +512,7 @@ export default function Navbar({
               <Link
                 href="/wishlist"
                 aria-label={`View Wishlist (${totalWishlistCount} saved sarees)`}
-                className="p-2 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group cursor-pointer"
+                className="p-1.5 min-[360px]:p-2 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group cursor-pointer"
                 title="View Wishlist"
               >
                 <Heart className="w-5 h-5 transition-transform duration-200 group-hover:scale-105" />
@@ -522,7 +528,7 @@ export default function Navbar({
               <Link
                 href="/cart"
                 aria-label="View Shopping Cart"
-                className="p-2 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group"
+                className="p-1.5 min-[360px]:p-2 text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] hover:scale-105 active:scale-95 rounded-full transition-all duration-200 relative group"
                 title="View Shopping Cart"
               >
                 <ShoppingBag className="w-5 h-5 transition-transform duration-200 group-hover:scale-105" />
