@@ -17,10 +17,10 @@ import {
   Sparkles,
   Eye,
   SlidersHorizontal,
+  Share2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { InstagramIcon } from "@/components/icons/Instagram";
 import InstagramShareModal from "@/components/admin/InstagramShareModal";
 import { createBrowserClient } from "@/lib/supabase/client";
 import { Saree, SareeCategory } from "@/types/saree";
@@ -592,11 +592,12 @@ export default function AdminSareesPage() {
                             <button
                               type="button"
                               onClick={() => setInstagramShareSaree(saree)}
-                              title="Instagram Marketing & Share"
-                              aria-label={`Share ${saree.name} on Instagram`}
-                              className="p-1.5 rounded-lg border border-[#E8E0D2] bg-white text-[#5A4E46] hover:text-[#DD2A7B] hover:bg-gradient-to-tr hover:from-amber-50 hover:to-rose-50 hover:border-rose-300 transition cursor-pointer"
+                              title="Share Product (Instagram & WhatsApp)"
+                              aria-label={`Share ${saree.name}`}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#C5A059]/40 bg-[#FAF0DC] hover:bg-[#F3E5C8] text-[#6E121E] hover:text-[#821524] text-xs font-semibold transition cursor-pointer shadow-2xs whitespace-nowrap"
                             >
-                              <InstagramIcon className="w-3.5 h-3.5" />
+                              <Share2 className="w-3.5 h-3.5 text-[#C5A059]" />
+                              <span>Share Product</span>
                             </button>
 
                             <button

@@ -23,6 +23,8 @@ import {
   Star,
   Images,
   Palette,
+  RefreshCw,
+  Wand2,
 } from "lucide-react";
 import AdminGuard from "@/components/admin/AdminGuard";
 import { createBrowserClient } from "@/lib/supabase/client";
@@ -143,6 +145,105 @@ export default function AddNewSareePage() {
   // Colour Variants state (Requirement 1 & 2)
   const [variants, setVariants] = useState<VariantDraft[]>([]);
   const [variantError, setVariantError] = useState<string | null>(null);
+
+  // AI Auto-Fill States
+  const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSuccessMessage, setAiSuccessMessage] = useState<string | null>(null);
+  const [aiSuggestedFields, setAiSuggestedFields] = useState<Set<string>>(new Set());
+
+  const analyzeImageWithAi = async (file: File) => {
+    if (!file) return;
+    setIsAnalyzingAi(true);
+    setAiError(null);
+    setAiSuccessMessage(null);
+
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const res = await fetch("/api/ai/analyze-saree", {
+        method: "POST",
+        body,
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success || !json.data) {
+        throw new Error(json.error || "AI was unable to analyze this image.");
+      }
+
+      const suggestion = json.data;
+      const newlySuggested = new Set<string>();
+
+      setFormData((prev) => {
+        const next = { ...prev };
+        if (suggestion.name) {
+          next.name = suggestion.name;
+          newlySuggested.add("name");
+        }
+        if (suggestion.color) {
+          next.color = suggestion.color;
+          newlySuggested.add("color");
+        }
+        if (suggestion.category) {
+          next.category = suggestion.category;
+          newlySuggested.add("category");
+        }
+        if (suggestion.fabric) {
+          next.fabric = suggestion.fabric;
+          newlySuggested.add("fabric");
+        }
+        if (suggestion.craft) {
+          next.craft = suggestion.craft;
+          newlySuggested.add("craft");
+        }
+        if (suggestion.zari_type) {
+          next.zari_type = suggestion.zari_type;
+          newlySuggested.add("zari_type");
+        }
+        if (suggestion.occasion) {
+          next.occasion = suggestion.occasion;
+          newlySuggested.add("occasion");
+        }
+        if (suggestion.description) {
+          next.description = suggestion.description;
+          newlySuggested.add("description");
+        }
+        return next;
+      });
+
+      // Clear any field errors for populated fields
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        newlySuggested.forEach((key) => delete next[key]);
+        return next;
+      });
+
+      setAiSuggestedFields(newlySuggested);
+      setAiSuccessMessage(
+        "✨ AI suggestions populated! You can review and edit every field before publishing."
+      );
+    } catch (err: unknown) {
+      console.warn("AI Auto-fill warning:", err);
+      const msg =
+        err instanceof Error ? err.message : "AI analysis could not complete.";
+      setAiError(
+        `${msg} You can still enter details manually or click Regenerate.`
+      );
+    } finally {
+      setIsAnalyzingAi(false);
+    }
+  };
+
+  const handleRegenerateAiSuggestions = () => {
+    const coverPhoto = selectedPhotos.find((p) => p.isCover) || selectedPhotos[0];
+    if (coverPhoto?.file) {
+      analyzeImageWithAi(coverPhoto.file);
+    } else {
+      setAiError("Please upload a saree photo first to run AI analysis.");
+    }
+  };
 
   const handleAddVariant = () => {
     setVariantError(null);
@@ -385,6 +486,12 @@ export default function AddNewSareePage() {
         }
         return combined;
       });
+
+      // Auto-trigger AI visual analysis on the first uploaded photo if name is still empty
+      const coverCandidate = newPhotos[0]?.file;
+      if (coverCandidate && (!formData.name.trim() || formData.name === "")) {
+        analyzeImageWithAi(coverCandidate);
+      }
     }
 
     if (fileInputRef.current) {
@@ -1152,8 +1259,92 @@ export default function AddNewSareePage() {
                           <span>{imageError}</span>
                         </p>
                       )}
+                    {/* AI Analysis Status & Action Banner */}
+                    <div className="pt-2">
+                      {isAnalyzingAi && (
+                        <div className="p-4 rounded-2xl bg-[#FAF0DC] border border-[#C5A059] flex items-center justify-between shadow-2xs animate-pulse">
+                          <div className="flex items-center gap-3">
+                            <Sparkles className="w-5 h-5 text-[#C5A059] animate-spin" />
+                            <div>
+                              <p className="text-xs font-bold text-[#6E121E]">
+                                ✨ AI is analyzing your saree...
+                              </p>
+                              <p className="text-[11px] text-[#8C7A6B]">
+                                Inspecting colors, borders, fabric characteristics & occasion suggestions
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-mono text-[#8C7A6B] uppercase tracking-wider">
+                            Analyzing
+                          </span>
+                        </div>
+                      )}
+
+                      {!isAnalyzingAi && aiSuccessMessage && (
+                        <div className="p-4 rounded-2xl bg-[#FAF6EE] border border-[#C5A059]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-[#FAF0DC] text-[#6E121E] border border-[#C5A059] flex items-center justify-center shrink-0 shadow-2xs">
+                              <Sparkles className="w-4 h-4 text-[#C5A059]" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-[#1E1715] flex items-center gap-2">
+                                <span>Product fields suggested by AI</span>
+                                <span className="text-[10px] font-bold text-[#6E121E] bg-[#FAF0DC] px-2 py-0.5 rounded-full border border-[#C5A059]">
+                                  AI Suggested
+                                </span>
+                              </p>
+                              <p className="text-[11px] text-[#5A4E46]">
+                                Every field below remains completely editable. Review and customize before publishing.
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRegenerateAiSuggestions}
+                            disabled={isAnalyzingAi}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF0DC] border border-[#C5A059] text-xs font-semibold text-[#6E121E] transition cursor-pointer shadow-2xs shrink-0"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzingAi ? "animate-spin text-[#C5A059]" : ""}`} />
+                            <span>Regenerate Suggestions</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {!isAnalyzingAi && aiError && (
+                        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span>{aiError}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRegenerateAiSuggestions}
+                            className="underline font-semibold cursor-pointer shrink-0"
+                          >
+                            Retry AI Analysis
+                          </button>
+                        </div>
+                      )}
+
+                      {!isAnalyzingAi && !aiSuccessMessage && !aiError && selectedPhotos.length > 0 && (
+                        <div className="flex items-center justify-between p-3.5 bg-[#FAF6EE] rounded-2xl border border-[#E8E0D2]">
+                          <div className="flex items-center gap-2 text-xs text-[#5A4E46]">
+                            <Sparkles className="w-4 h-4 text-[#C5A059]" />
+                            <span>Want AI to auto-fill product details from your uploaded photo?</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRegenerateAiSuggestions}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#6E121E] hover:bg-[#821524] text-white text-xs font-semibold transition cursor-pointer shadow-2xs"
+                          >
+                            <Wand2 className="w-3.5 h-3.5 text-[#C5A059]" />
+                            <span>Auto-Fill with AI</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
+                </div>
 
                   {/* SECTION 1B: Product Drape Video (Supabase Storage saree-videos) */}
                   <div>
@@ -1279,6 +1470,12 @@ export default function AddNewSareePage() {
                           className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                         >
                           Saree Name <span className="text-[#6E121E]">*</span>
+                          {aiSuggestedFields.has("name") && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                              <span>AI Suggested</span>
+                            </span>
+                          )}
                         </label>
                         <input
                           id="name"
@@ -1346,6 +1543,12 @@ export default function AddNewSareePage() {
                           className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                         >
                           Category <span className="text-[#6E121E]">*</span>
+                          {aiSuggestedFields.has("category") && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                              <span>AI Suggested</span>
+                            </span>
+                          )}
                         </label>
                         <select
                           id="category"
@@ -1936,6 +2139,12 @@ export default function AddNewSareePage() {
                           className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                         >
                           Fabric
+                          {aiSuggestedFields.has("fabric") && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                              <span>AI Suggested</span>
+                            </span>
+                          )}
                         </label>
                         <input
                           id="fabric"
@@ -1955,6 +2164,12 @@ export default function AddNewSareePage() {
                           className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                         >
                           Craft / Weave
+                          {aiSuggestedFields.has("craft") && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                              <span>AI Suggested</span>
+                            </span>
+                          )}
                         </label>
                         <input
                           id="craft"
@@ -1974,6 +2189,12 @@ export default function AddNewSareePage() {
                           className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                         >
                           Zari Type
+                          {aiSuggestedFields.has("zari_type") && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                              <span>AI Suggested</span>
+                            </span>
+                          )}
                         </label>
                         <input
                           id="zari_type"
@@ -1993,6 +2214,12 @@ export default function AddNewSareePage() {
                           className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                         >
                           Occasion
+                          {aiSuggestedFields.has("occasion") && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                              <span>AI Suggested</span>
+                            </span>
+                          )}
                         </label>
                         <input
                           id="occasion"
@@ -2012,6 +2239,12 @@ export default function AddNewSareePage() {
                           className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                         >
                           Color Palette
+                          {aiSuggestedFields.has("color") && (
+                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                              <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                              <span>AI Suggested</span>
+                            </span>
+                          )}
                         </label>
                         <input
                           id="color"
@@ -2041,6 +2274,12 @@ export default function AddNewSareePage() {
                         className="block text-xs font-semibold uppercase tracking-wider text-[#5A4E46] mb-1.5"
                       >
                         Description
+                        {aiSuggestedFields.has("description") && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-bold text-[#6E121E] px-2 py-0.5 rounded-full bg-[#FAF0DC] border border-[#C5A059]/50 normal-case tracking-normal">
+                            <Sparkles className="w-2.5 h-2.5 text-[#C5A059]" />
+                            <span>AI Suggested</span>
+                          </span>
+                        )}
                       </label>
                       <textarea
                         id="description"
