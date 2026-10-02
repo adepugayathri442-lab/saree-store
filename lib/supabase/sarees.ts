@@ -757,13 +757,50 @@ export async function deleteSareeFromDb(
       return { success: false, error: { message: "Supabase client is not available." } };
     }
 
-    // Ensure session is active
-    await client.auth.getSession();
+    // 1. Verify that an active administrative authentication session exists
+    if (typeof window !== "undefined") {
+      const { data: sessionData } = await client.auth.getSession();
+      if (!sessionData?.session?.user) {
+        const { data: userData } = await client.auth.getUser();
+        if (!userData?.user) {
+          return {
+            success: false,
+            error: {
+              message:
+                "Authentication required: You must be logged in as an administrator to delete sarees from the boutique database.",
+            },
+          };
+        }
+      }
+    }
 
     const isUuid =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmedId);
 
-    // 1. Delete row from Supabase
+    // 2. Defensively clean up/unlink related child records (variants, reviews, enquiries)
+    // to prevent foreign key constraint violations from blocking the saree deletion
+    if (isUuid) {
+      try {
+        await client.from("saree_variants").delete().eq("saree_id", trimmedId);
+      } catch (vErr) {
+        console.warn("saree_variants cleanup warning (non-fatal):", vErr);
+      }
+      try {
+        await client.from("reviews").delete().eq("saree_id", trimmedId);
+      } catch (rErr) {
+        console.warn("reviews cleanup warning (non-fatal):", rErr);
+      }
+      try {
+        await client.from("enquiries").update({ saree_id: null }).eq("saree_id", trimmedId);
+      } catch (eErr) {
+        console.warn("enquiries unlinking warning (non-fatal):", eErr);
+      }
+    }
+
+    // 3. Delete row from Supabase public.sarees table
+    // CRITICAL: We append .select('id, sku, name') so PostgREST returns the actually deleted
+    // records. Without .select(), PostgREST returns 204 No Content with error: null even when
+    // 0 rows were deleted (such as due to RLS filter mismatch or invalid ID).
     let query = client.from("sarees").delete();
     if (isUuid) {
       query = query.eq("id", trimmedId);
@@ -771,14 +808,38 @@ export async function deleteSareeFromDb(
       query = query.eq("sku", trimmedId);
     }
 
-    const { error } = await query;
+    const { data: deletedRows, error: deleteErr } = await query.select("id, sku, name");
 
-    if (error) {
-      console.error("Error deleting saree from Supabase:", error);
-      return { success: false, error: { message: error.message } };
+    if (deleteErr) {
+      console.error("Error deleting saree from Supabase:", deleteErr);
+      const isPermissionDenied =
+        deleteErr.code === "42501" ||
+        deleteErr.message.toLowerCase().includes("permission denied") ||
+        deleteErr.message.toLowerCase().includes("row-level security");
+
+      const errorMsg = isPermissionDenied
+        ? "Database permission denied: Your admin account does not have permission to delete rows from the sarees table. Please run the sarees RLS migration in Supabase SQL editor."
+        : deleteErr.message || "Failed to delete saree from database.";
+
+      return {
+        success: false,
+        error: { message: errorMsg },
+      };
     }
 
-    // 2. If saree row deletion succeeded, safely remove all associated photographs from storage bucket
+    // If query returned 0 rows, the row was NOT deleted in Supabase
+    if (!deletedRows || deletedRows.length === 0) {
+      console.error("Supabase DELETE query affected 0 rows for target ID/SKU:", trimmedId);
+      return {
+        success: false,
+        error: {
+          message:
+            "Database deletion failed: 0 rows were removed from Supabase. The saree was either already removed or blocked by Row Level Security (RLS). The saree will remain visible.",
+        },
+      };
+    }
+
+    // 4. Safely remove associated photographs from storage bucket (non-fatal)
     const imagesToDelete: string[] = [];
     if (Array.isArray(imageUrlOrGallery)) {
       imagesToDelete.push(...imageUrlOrGallery);
@@ -794,7 +855,7 @@ export async function deleteSareeFromDb(
       }
     }
 
-    // 3. If saree row deletion succeeded, safely remove associated video from storage bucket
+    // 5. Safely remove associated video from storage bucket (non-fatal)
     if (videoUrl) {
       try {
         await deleteSareeVideo(videoUrl, client);
@@ -803,7 +864,7 @@ export async function deleteSareeFromDb(
       }
     }
 
-    // 4. Trigger revalidation on the server if executed in the browser
+    // 6. Trigger Next.js cache revalidation via server API
     if (typeof window !== "undefined") {
       try {
         fetch("/api/revalidate-sarees", {

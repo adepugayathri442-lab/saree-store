@@ -68,6 +68,43 @@ function saveWishlistItems(newItems: Saree[]) {
   window.dispatchEvent(new Event("saisrujana_wishlist_change"));
 }
 
+// Automatically remove deleted sarees from local wishlist across tabs
+if (typeof window !== "undefined") {
+  window.addEventListener("saisrujana:saree-deleted", (e: Event) => {
+    const custom = e as CustomEvent<{ id?: string; sku?: string }>;
+    const delId = custom.detail?.id;
+    const delSku = custom.detail?.sku;
+    if (delId || delSku) {
+      const items = getWishlistSnapshot();
+      const filtered = items.filter(
+        (it) => it.id !== delId && (!delSku || it.sku !== delSku)
+      );
+      if (filtered.length !== items.length) {
+        saveWishlistItems(filtered);
+      }
+    }
+  });
+
+  window.addEventListener("storage", (e: StorageEvent) => {
+    if (e.key === "saisrujana:saree-deleted" && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (parsed.id || parsed.sku) {
+          const items = getWishlistSnapshot();
+          const filtered = items.filter(
+            (it) => it.id !== parsed.id && (!parsed.sku || it.sku !== parsed.sku)
+          );
+          if (filtered.length !== items.length) {
+            saveWishlistItems(filtered);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  });
+}
+
 function subscribeMounted() {
   return () => {};
 }

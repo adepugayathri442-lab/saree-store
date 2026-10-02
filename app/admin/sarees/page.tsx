@@ -164,14 +164,19 @@ export default function AdminSareesPage() {
 
     setIsSavingQuick(true);
     try {
+      const supabase = createBrowserClient();
       const stockStatus = numStock <= 0 ? "Out of Stock" : "In Stock";
-      const res = await updateSareeInDb(quickEditSaree.id, {
-        price: numPrice,
-        stockQuantity: numStock,
-        stockStatus,
-        isFeatured: editFeatured,
-        isNewArrival: editNewArrival,
-      });
+      const res = await updateSareeInDb(
+        quickEditSaree.id,
+        {
+          price: numPrice,
+          stockQuantity: numStock,
+          stockStatus,
+          isFeatured: editFeatured,
+          isNewArrival: editNewArrival,
+        },
+        supabase
+      );
 
       if (!res.success) {
         alert(res.error?.message || "Failed to update saree");
@@ -213,7 +218,7 @@ export default function AdminSareesPage() {
     }
   };
 
-  // Safe Deletion with immediate cache invalidation and client-side sync
+  // Safe Deletion with immediate database verification, cache invalidation and client-side sync
   const handleConfirmDelete = async () => {
     if (!sareeToDelete) return;
     setIsDeleting(true);
@@ -224,13 +229,22 @@ export default function AdminSareesPage() {
     const deletedName = sareeToDelete.name;
 
     try {
-      const res = await deleteSareeFromDb(deletedId);
+      const supabase = createBrowserClient();
+      const res = await deleteSareeFromDb(
+        deletedId,
+        supabase,
+        sareeToDelete.gallery,
+        sareeToDelete.videoUrl
+      );
+
       if (!res.success) {
+        // Show real database error in the modal and keep the saree in the list
         setDeleteError(res.error?.message || "Failed to delete saree from database");
         setIsDeleting(false);
         return;
       }
 
+      // ONLY AFTER VERIFIED DATABASE DELETION:
       // 1. Immediately invalidate Next.js server cache for customer routes
       try {
         await revalidateSareeCache(deletedId);
@@ -257,16 +271,17 @@ export default function AdminSareesPage() {
         removeRecentlyViewedSaree(deletedSku);
       }
 
-      // 4. Update local admin table state
+      // 4. Update local admin table state ONLY AFTER database confirmation
       setSarees((prev) => prev.filter((s) => s.id !== deletedId));
-      setToastMessage(`Saree "${deletedName}" removed from catalogue.`);
-      setTimeout(() => setToastMessage(null), 3000);
+      setToastMessage(`Saree "${deletedName}" permanently removed from catalogue.`);
+      setTimeout(() => setToastMessage(null), 4000);
       setSareeToDelete(null);
 
       // 5. Invalidate Next.js client-side router cache
       router.refresh();
-    } catch {
-      setDeleteError("Unexpected error deleting saree");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unexpected error deleting saree";
+      setDeleteError(msg);
     } finally {
       setIsDeleting(false);
     }

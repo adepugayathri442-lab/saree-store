@@ -81,6 +81,43 @@ function saveCartItems(newItems: CartItem[]) {
   window.dispatchEvent(new Event("saisrujana_cart_change"));
 }
 
+// Automatically remove deleted sarees from local cart across tabs
+if (typeof window !== "undefined") {
+  window.addEventListener("saisrujana:saree-deleted", (e: Event) => {
+    const custom = e as CustomEvent<{ id?: string; sku?: string }>;
+    const delId = custom.detail?.id;
+    const delSku = custom.detail?.sku;
+    if (delId || delSku) {
+      const items = getCartSnapshot();
+      const filtered = items.filter(
+        (it) => it.saree.id !== delId && (!delSku || it.saree.sku !== delSku)
+      );
+      if (filtered.length !== items.length) {
+        saveCartItems(filtered);
+      }
+    }
+  });
+
+  window.addEventListener("storage", (e: StorageEvent) => {
+    if (e.key === "saisrujana:saree-deleted" && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (parsed.id || parsed.sku) {
+          const items = getCartSnapshot();
+          const filtered = items.filter(
+            (it) => it.saree.id !== parsed.id && (!parsed.sku || it.saree.sku !== parsed.sku)
+          );
+          if (filtered.length !== items.length) {
+            saveCartItems(filtered);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  });
+}
+
 function subscribeMounted() {
   return () => {};
 }
