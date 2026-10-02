@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -50,6 +50,81 @@ export default function InstagramShareModal({
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [copiedWhatsAppLink, setCopiedWhatsAppLink] = useState(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
+
+  const captionTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Reliable clipboard copy helper: uses modern Clipboard API with execCommand fallback
+  const copyTextToClipboard = async (text: string): Promise<boolean> => {
+    // 1. Try modern asynchronous Clipboard API if available in secure/supported context
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.clipboard &&
+      typeof navigator.clipboard.writeText === "function"
+    ) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (clipErr) {
+        console.warn(
+          "navigator.clipboard.writeText failed or was blocked, trying execCommand fallback:",
+          clipErr
+        );
+      }
+    }
+
+    // 2. Fallback: temporary textarea + document.execCommand("copy")
+    if (typeof document !== "undefined") {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.top = "0";
+        textarea.style.left = "0";
+        textarea.style.width = "2em";
+        textarea.style.height = "2em";
+        textarea.style.padding = "0";
+        textarea.style.border = "none";
+        textarea.style.outline = "none";
+        textarea.style.boxShadow = "none";
+        textarea.style.background = "transparent";
+        textarea.style.opacity = "0";
+        textarea.style.zIndex = "-1";
+
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+
+        const successful = document.execCommand("copy");
+        document.body.removeChild(textarea);
+
+        if (successful) {
+          return true;
+        }
+      } catch (execErr) {
+        console.warn("document.execCommand fallback failed:", execErr);
+      }
+
+      // 3. Fallback: If captionTextareaRef is available, select it directly
+      if (captionTextareaRef.current) {
+        try {
+          captionTextareaRef.current.focus();
+          captionTextareaRef.current.select();
+          captionTextareaRef.current.setSelectionRange(
+            0,
+            captionTextareaRef.current.value.length
+          );
+          const successful = document.execCommand("copy");
+          if (successful) return true;
+        } catch (refErr) {
+          console.warn("captionTextareaRef fallback failed:", refErr);
+        }
+      }
+    }
+
+    return false;
+  };
 
   // Exact public product URL specifically for this saree
   const productUrl = useMemo(() => {
@@ -129,9 +204,11 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
 
   const handleCopyProductLink = async () => {
     try {
-      await navigator.clipboard.writeText(productUrl);
-      setCopiedProductLink(true);
-      setTimeout(() => setCopiedProductLink(false), 2500);
+      const ok = await copyTextToClipboard(productUrl);
+      if (ok) {
+        setCopiedProductLink(true);
+        setTimeout(() => setCopiedProductLink(false), 2000);
+      }
     } catch (err) {
       console.error("Failed to copy product link:", err);
     }
@@ -139,9 +216,16 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
 
   const handleCopyCaption = async () => {
     try {
-      await navigator.clipboard.writeText(caption);
-      setCopiedCaption(true);
-      setTimeout(() => setCopiedCaption(false), 2500);
+      const ok = await copyTextToClipboard(caption);
+      if (ok) {
+        setCopiedCaption(true);
+        setTimeout(() => setCopiedCaption(false), 2000);
+      } else {
+        if (captionTextareaRef.current) {
+          captionTextareaRef.current.focus();
+          captionTextareaRef.current.select();
+        }
+      }
     } catch (err) {
       console.error("Failed to copy caption:", err);
     }
@@ -149,9 +233,11 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
 
   const handleCopyWhatsAppLink = async () => {
     try {
-      await navigator.clipboard.writeText(whatsappUrl);
-      setCopiedWhatsAppLink(true);
-      setTimeout(() => setCopiedWhatsAppLink(false), 2500);
+      const ok = await copyTextToClipboard(whatsappUrl);
+      if (ok) {
+        setCopiedWhatsAppLink(true);
+        setTimeout(() => setCopiedWhatsAppLink(false), 2000);
+      }
     } catch (err) {
       console.error("Failed to copy WhatsApp link:", err);
     }
@@ -175,7 +261,7 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
       } catch (err: unknown) {
         if ((err as Error)?.name !== "AbortError") {
           try {
-            await navigator.clipboard.writeText(`${caption}\n\n${productUrl}`);
+            await copyTextToClipboard(`${caption}\n\n${productUrl}`);
             setShareFeedback("Caption & link copied to clipboard!");
             setTimeout(() => setShareFeedback(null), 3000);
           } catch {
@@ -187,7 +273,7 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
     } else {
       // Fallback if Web Share is not supported
       try {
-        await navigator.clipboard.writeText(
+        await copyTextToClipboard(
           `${caption}\n\nProduct Link: ${productUrl}`
         );
         setShareFeedback(
@@ -459,7 +545,7 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
               {copiedCaption ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Caption Copied!</span>
+                  <span>Caption Copied ✓</span>
                 </>
               ) : (
                 <>
@@ -471,6 +557,7 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
           </div>
 
           <textarea
+            ref={captionTextareaRef}
             readOnly
             value={caption}
             rows={7}
@@ -489,7 +576,7 @@ ${detailsList.length > 0 ? `${detailsList.join(" | ")}\n` : ""}🏷️ Price: ${
             {copiedCaption ? (
               <>
                 <Check className="w-4 h-4 text-emerald-200" />
-                <span>Caption Copied to Clipboard!</span>
+                <span>Caption Copied ✓</span>
               </>
             ) : (
               <>
