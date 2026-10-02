@@ -144,9 +144,9 @@ export default function RecentlyViewed({
 
         {/* Saree Cards Responsive Grid */}
         <div
-          className={`grid grid-cols-1 min-[360px]:grid-cols-2 ${
+          className={`grid grid-cols-2 ${
             activeSarees.length >= 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"
-          } gap-3 sm:gap-6 lg:gap-8`}
+          } gap-2 min-[360px]:gap-2.5 sm:gap-6 lg:gap-8`}
         >
           {activeSarees.map((saree) => (
             <SareeCard key={saree.id} saree={saree} />

@@ -204,7 +204,7 @@ export default function WishlistPage() {
           ) : (
             /* Wishlist Items Grid */
             <div className="space-y-6">
-              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-6 lg:gap-8">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 min-[360px]:gap-2.5 sm:gap-6 lg:gap-8">
                 {items.map((saree) => {
                   return (
                     <div
@@ -253,21 +253,21 @@ export default function WishlistPage() {
                         </div>
 
                         {/* Saree Card Details */}
-                        <div className="p-3 sm:p-5">
-                          <div className="flex items-center justify-between text-xs text-[#8C7A6B] mb-1 sm:mb-1.5">
-                            <span className="font-medium text-[#C5A059] flex items-center gap-1 text-[11px] sm:text-xs truncate max-w-[65%]">
-                              <Tag className="w-3 h-3 shrink-0" /> {saree.categoryLabel}
+                        <div className="p-2 min-[360px]:p-2.5 sm:p-5">
+                          <div className="flex items-center justify-between text-[10px] min-[360px]:text-[11px] sm:text-xs text-[#8C7A6B] mb-0.5 sm:mb-1.5">
+                            <span className="font-medium text-[#C5A059] flex items-center gap-1 truncate max-w-[65%]">
+                              <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" /> {saree.categoryLabel}
                             </span>
-                            <span className="text-[9.5px] sm:text-[10px] font-mono text-[#8C7A6B] shrink-0">{saree.sku}</span>
+                            <span className="text-[9px] sm:text-[10px] font-mono text-[#8C7A6B] shrink-0">{saree.sku}</span>
                           </div>
 
-                          <Link href={`/sarees/${saree.id}`}>
-                            <h3 className="font-serif-luxury text-sm min-[360px]:text-base sm:text-lg font-bold text-[#1E1715] leading-snug mb-1 sm:mb-2 group-hover:text-[#6E121E] transition-colors duration-250 line-clamp-1">
+                          <Link href={`/sarees/${saree.id}`} className="block">
+                            <h3 className="font-serif-luxury text-xs min-[360px]:text-sm sm:text-lg font-bold text-[#1E1715] leading-tight sm:leading-snug mb-0.5 sm:mb-2 group-hover:text-[#6E121E] transition-colors duration-250 line-clamp-1">
                               {saree.name}
                             </h3>
                           </Link>
 
-                          <p className="text-[11px] sm:text-xs text-[#5A4E46] line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-3 font-light">
+                          <p className="hidden sm:block text-[11px] sm:text-xs text-[#5A4E46] line-clamp-2 mb-2 sm:mb-3 font-light">
                             {saree.description}
                           </p>
 
@@ -275,7 +275,7 @@ export default function WishlistPage() {
                             <span className="text-xs min-[360px]:text-sm sm:text-base font-bold text-[#6E121E]">
                               {formatCurrency(saree.price)}
                             </span>
-                            <span className="text-[9.5px] sm:text-[11px] text-[#1E3F34] font-medium bg-[#E8F3EE] px-1.5 sm:px-2 py-0.5 rounded truncate">
+                            <span className="text-[8.5px] min-[360px]:text-[9.5px] sm:text-[11px] text-[#1E3F34] font-medium bg-[#E8F3EE] px-1 sm:px-2 py-0.2 sm:py-0.5 rounded truncate">
                               {saree.stockStatus}
                             </span>
                           </div>
@@ -283,27 +283,27 @@ export default function WishlistPage() {
                       </div>
 
                       {/* Action Buttons: View Saree, Enquire Now, Add to Cart & Remove */}
-                      <div className="p-3 sm:p-5 pt-0 border-t border-[#E8E0D2]/50 mt-1 sm:mt-2 space-y-1.5 sm:space-y-2">
+                      <div className="p-2 min-[360px]:p-2.5 sm:p-5 pt-1.5 sm:pt-0 border-t border-[#E8E0D2]/50 mt-0.5 sm:mt-2 space-y-1 sm:space-y-2">
                         {/* Enquire Now (Opens existing enquiry modal + WhatsApp flow) */}
                         <button
                           type="button"
                           onClick={() => setEnquiringSaree(saree)}
                           aria-label={`Enquire now about ${saree.name}`}
-                          className="w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl bg-[#1E3F34] hover:bg-[#285345] text-white text-[10px] sm:text-xs font-semibold tracking-wider uppercase btn-premium-whatsapp flex items-center justify-center gap-1 sm:gap-1.5 shadow-xs transition cursor-pointer"
+                          className="w-full py-1.5 sm:py-2.5 px-2 sm:px-3 rounded-lg sm:rounded-xl bg-[#1E3F34] hover:bg-[#285345] text-white text-[10px] min-[360px]:text-[11px] sm:text-xs font-semibold tracking-wider uppercase btn-premium-whatsapp flex items-center justify-center gap-1 sm:gap-1.5 shadow-xs transition cursor-pointer"
                         >
                           <MessageCircle className="w-3.5 h-3.5 text-[#A7F3D0] shrink-0" />
                           <span className="truncate">Enquire Now</span>
                         </button>
 
-                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                        <div className="grid grid-cols-2 gap-1 sm:gap-2">
                           {/* View Saree Details Action */}
                           <Link
                             href={`/sarees/${saree.id}`}
                             aria-label={`View details for ${saree.name}`}
-                            className="py-2 sm:py-2.5 px-1.5 sm:px-2.5 rounded-xl border border-[#C5A059]/50 bg-white hover:bg-[#FAF6EE] text-[#6E121E] text-[10px] sm:text-xs tracking-wider uppercase font-semibold flex items-center justify-center gap-1 sm:gap-1.5 transition-all shadow-2xs text-center"
+                            className="py-1.5 sm:py-2.5 px-1 sm:px-2.5 rounded-lg sm:rounded-xl border border-[#C5A059]/50 bg-white hover:bg-[#FAF6EE] text-[#6E121E] text-[10px] min-[360px]:text-[11px] sm:text-xs tracking-wider uppercase font-semibold flex items-center justify-center gap-1 sm:gap-1.5 transition-all shadow-2xs text-center"
                           >
                             <Eye className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#C5A059] shrink-0" />
-                            <span className="truncate">View Saree</span>
+                            <span className="truncate">View</span>
                           </Link>
 
                           {/* Add to Cart Action */}
@@ -311,10 +311,10 @@ export default function WishlistPage() {
                             type="button"
                             onClick={() => handleAddToCart(saree)}
                             aria-label={`Add ${saree.name} to cart`}
-                            className="py-2 sm:py-2.5 px-1.5 sm:px-2.5 rounded-xl bg-[#6E121E] hover:bg-[#821524] text-white text-[10px] sm:text-xs tracking-wider uppercase font-semibold flex items-center justify-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer group/btn"
+                            className="py-1.5 sm:py-2.5 px-1 sm:px-2.5 rounded-lg sm:rounded-xl bg-[#6E121E] hover:bg-[#821524] text-white text-[10px] min-[360px]:text-[11px] sm:text-xs tracking-wider uppercase font-semibold flex items-center justify-center gap-1 sm:gap-1.5 transition-all shadow-xs cursor-pointer group/btn"
                           >
                             <ShoppingBag className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-[#E5D2A4] group-hover/btn:scale-110 transition-transform shrink-0" />
-                            <span className="truncate">Add to Cart</span>
+                            <span className="truncate">Cart</span>
                           </button>
                         </div>
 
@@ -323,10 +323,10 @@ export default function WishlistPage() {
                           type="button"
                           onClick={() => removeFromWishlist(saree.id)}
                           aria-label={`Remove ${saree.name} from saved wishlist`}
-                          className="w-full py-1.5 text-center text-[11px] text-[#8C7A6B] hover:text-red-700 hover:underline flex items-center justify-center gap-1 transition cursor-pointer pt-1"
+                          className="w-full py-1 text-center text-[10px] sm:text-[11px] text-[#8C7A6B] hover:text-red-700 hover:underline flex items-center justify-center gap-1 transition cursor-pointer"
                         >
                           <Trash2 className="w-3 h-3 text-[#8C7A6B] hover:text-red-700" />
-                          <span>Remove from Wishlist</span>
+                          <span>Remove</span>
                         </button>
                       </div>
                     </div>

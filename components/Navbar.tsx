@@ -52,6 +52,8 @@ export default function Navbar({
   const [searchQuery, setSearchQuery] = useState("");
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileButtonRef = useRef<HTMLButtonElement>(null);
 
   // Fetch unread notification count
   useEffect(() => {
@@ -106,20 +108,52 @@ export default function Navbar({
     };
   }, [user?.id]);
 
-  // Close dropdown on click outside
+  // Close dropdown or mobile menu on click outside, Escape key, or screen resize
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      const target = event.target as Node;
+      // Close user dropdown if clicked outside
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsUserDropdownOpen(false);
       }
+      // Close mobile menu if clicked outside both panel and hamburger button
+      if (
+        isMobileMenuOpen &&
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(target) &&
+        mobileButtonRef.current &&
+        !mobileButtonRef.current.contains(target)
+      ) {
+        setIsMobileMenuOpen(false);
+      }
     }
-    if (isUserDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsUserDropdownOpen(false);
+        setIsMobileMenuOpen(false);
+        setIsSearchOpen(false);
+      }
     }
+
+    function handleResize() {
+      if (window.innerWidth >= 1024) {
+        setIsMobileMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleResize);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
     };
-  }, [isUserDropdownOpen]);
+  }, [isMobileMenuOpen, isUserDropdownOpen]);
 
   const totalCartCount =
     propCart !== undefined
@@ -251,31 +285,34 @@ export default function Navbar({
 
       {/* Main Sticky Navbar */}
       <header className="sticky top-0 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#E8E0D2] transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button - Fixed in top-left */}
             <div className="flex items-center lg:hidden">
               <button
+                ref={mobileButtonRef}
                 type="button"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label="Toggle Navigation Menu"
-                className="p-2 rounded-md text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] focus:outline-none transition"
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-navigation-panel"
+                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                className="p-2 -ml-1 rounded-xl text-[#2C2420] hover:text-[#6E121E] hover:bg-[#F0EAE1] focus:outline-none transition cursor-pointer"
               >
                 {isMobileMenuOpen ? (
-                  <X className="w-6 h-6" />
+                  <X className="w-6 h-6 text-[#6E121E]" />
                 ) : (
-                  <Menu className="w-6 h-6" />
+                  <Menu className="w-6 h-6 text-[#2C2420]" />
                 )}
               </button>
             </div>
 
             {/* Brand Logo & Name */}
-            <div className="flex-1 lg:flex-none flex items-center justify-center lg:justify-start">
-              <Link href="/" className="group flex flex-col items-center lg:items-start">
-                <span className="font-serif-luxury text-2xl sm:text-3xl tracking-[0.16em] font-bold text-[#6E121E] group-hover:text-[#821524] transition">
+            <div className="flex-1 lg:flex-none flex items-center justify-center lg:justify-start min-w-0 px-1">
+              <Link href="/" className="group flex flex-col items-center lg:items-start text-center lg:text-left">
+                <span className="font-serif-luxury text-xl min-[360px]:text-2xl sm:text-3xl tracking-[0.10em] min-[360px]:tracking-[0.16em] font-bold text-[#6E121E] group-hover:text-[#821524] transition truncate">
                   {SHOP_CONFIG.brandName}
                 </span>
-                <span className="text-[10px] tracking-[0.28em] text-[#8C7A6B] uppercase -mt-0.5 font-medium">
+                <span className="text-[8px] min-[360px]:text-[10px] tracking-[0.18em] min-[360px]:tracking-[0.28em] text-[#8C7A6B] uppercase -mt-0.5 font-medium truncate">
                   {SHOP_CONFIG.tagline}
                 </span>
               </Link>
@@ -301,7 +338,7 @@ export default function Navbar({
             </nav>
 
             {/* Right Action Icons (Search, Cart & WhatsApp CTA) */}
-            <div className="flex items-center space-x-3 sm:space-x-5">
+            <div className="flex items-center space-x-1.5 min-[360px]:space-x-2.5 sm:space-x-5 shrink-0">
               {/* Search Icon */}
               <button
                 type="button"
@@ -511,202 +548,74 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Mobile Navigation Dropdown Menu */}
+        {/* Mobile Navigation Panel - Positioned directly below top mobile navbar */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden bg-[#FAF7F2] border-b border-[#E8E0D2] px-6 py-6 animate-in slide-in-from-top duration-200 shadow-xl">
-            <div className="flex flex-col space-y-4 text-base font-medium text-[#2C2420]">
+          <div
+            ref={mobileMenuRef}
+            id="mobile-navigation-panel"
+            className="lg:hidden absolute top-full left-0 right-0 w-full bg-[#FAF7F2] border-b border-[#C5A059]/40 shadow-2xl z-50 animate-in slide-in-from-top-2 duration-200 overflow-hidden"
+          >
+            <nav
+              aria-label="Mobile Navigation Menu"
+              className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 divide-y divide-[#E8E0D2]/70"
+            >
               <Link
                 href="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
+                className="flex items-center justify-between py-3.5 px-3 rounded-xl text-base font-serif-luxury font-bold text-[#1E1715] hover:text-[#6E121E] hover:bg-[#FAF0DC]/60 active:bg-[#FAF0DC] transition group"
               >
                 <span>Home</span>
-                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
+                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:text-[#6E121E] group-hover:translate-x-1 transition-all" />
               </Link>
+
               <Link
                 href="/#collections"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
+                className="flex items-center justify-between py-3.5 px-3 rounded-xl text-base font-serif-luxury font-bold text-[#1E1715] hover:text-[#6E121E] hover:bg-[#FAF0DC]/60 active:bg-[#FAF0DC] transition group"
               >
                 <span>Collections</span>
-                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
+                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:text-[#6E121E] group-hover:translate-x-1 transition-all" />
               </Link>
+
               <Link
                 href="/sarees"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between font-semibold text-[#6E121E] transition-colors duration-200 group"
+                className="flex items-center justify-between py-3.5 px-3 rounded-xl text-base font-serif-luxury font-bold text-[#6E121E] hover:bg-[#FAF0DC]/60 active:bg-[#FAF0DC] transition group"
               >
-                <span>Explore Sarees</span>
-                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-              <Link
-                href="/wishlist"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
-              >
-                <span className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-[#6E121E]" />
-                  <span>Wishlist / Saved Sarees</span>
-                  {totalWishlistCount > 0 && (
-                    <span className="bg-[#6E121E] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {totalWishlistCount}
-                    </span>
-                  )}
-                </span>
-                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-              <Link
-                href="/cart"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
-              >
-                <span className="flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4 text-[#6E121E]" />
-                  <span>Cart / Inquiry Bag</span>
-                  {totalCartCount > 0 && (
-                    <span className="bg-[#6E121E] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {totalCartCount}
-                    </span>
-                  )}
-                </span>
-                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
+                <span>Sarees</span>
+                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:text-[#6E121E] group-hover:translate-x-1 transition-all" />
               </Link>
 
-              {/* Logged-In Patron Account Navigation Links */}
-              {isLoggedIn ? (
-                <div className="pt-2 pb-2 border-y border-[#E8E0D2]/70 space-y-2 bg-[#FAF0DC]/30 p-3 rounded-2xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-[#6E121E] uppercase tracking-wider">
-                      Patron Account: {customerName ? customerName.split(" ")[0] : "Profile"}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setIsMobileMenuOpen(false);
-                        await signOut();
-                      }}
-                      className="text-xs text-rose-700 font-semibold hover:underline cursor-pointer"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-
-                  {/* Prominent Your Orders in Mobile Drawer */}
-                  <Link
-                    href="/account?tab=orders"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-2 px-3 rounded-xl bg-[#6E121E] text-white text-sm font-bold shadow-xs cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-[#E5D2A4]" />
-                      <span>Your Orders</span>
-                    </span>
-                    <span className="text-xs text-[#E5D2A4] font-normal">Track ↗</span>
-                  </Link>
-
-                  <Link
-                    href="/account?tab=addresses"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1.5 px-3 rounded-xl text-xs font-semibold text-[#5C4D44] hover:text-[#6E121E] cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-[#6E121E]" />
-                      <span>Saved Addresses</span>
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#C5A059]" />
-                  </Link>
-
-                  <Link
-                    href="/account?tab=notifications"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1.5 px-3 rounded-xl text-xs font-semibold text-[#5C4D44] hover:text-[#6E121E] cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="relative">
-                        <Bell className="w-3.5 h-3.5 text-[#6E121E]" />
-                        {unreadNotifCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
-                        )}
-                      </span>
-                      <span>Notifications</span>
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      {unreadNotifCount > 0 && (
-                        <span className="px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[10px] font-bold">
-                          {unreadNotifCount}
-                        </span>
-                      )}
-                      <ArrowRight className="w-3.5 h-3.5 text-[#C5A059]" />
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/account"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center justify-between py-1.5 px-3 rounded-xl text-xs font-semibold text-[#5C4D44] hover:text-[#6E121E] cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <UserIcon className="w-3.5 h-3.5 text-[#6E121E]" />
-                      <span>Full Account Overview</span>
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-[#C5A059]" />
-                  </Link>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="hover:text-[#6E121E] py-2.5 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
-                >
-                  <span className="flex items-center gap-2">
-                    <UserIcon className="w-4 h-4 text-[#6E121E]" />
-                    <span className="font-semibold text-[#6E121E]">Login / Sign Up</span>
-                  </span>
-                  <span className="text-[11px] font-semibold text-[#C5A059] flex items-center gap-1">
-                    <span>Sign In</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
-                </Link>
-              )}
               <Link
                 href="/#about"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
+                className="flex items-center justify-between py-3.5 px-3 rounded-xl text-base font-serif-luxury font-bold text-[#1E1715] hover:text-[#6E121E] hover:bg-[#FAF0DC]/60 active:bg-[#FAF0DC] transition group"
               >
-                <span>About SaiSrujana</span>
-                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
+                <span>About</span>
+                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:text-[#6E121E] group-hover:translate-x-1 transition-all" />
               </Link>
+
               <Link
                 href="/#contact"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#6E121E] py-2 border-b border-[#E8E0D2]/50 flex items-center justify-between transition-colors duration-200 group"
+                className="flex items-center justify-between py-3.5 px-3 rounded-xl text-base font-serif-luxury font-bold text-[#1E1715] hover:text-[#6E121E] hover:bg-[#FAF0DC]/60 active:bg-[#FAF0DC] transition group"
               >
-                <span>Contact & Store Location</span>
-                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:translate-x-1 transition-transform duration-200" />
+                <span>Contact</span>
+                <ArrowRight className="w-4 h-4 text-[#C5A059] group-hover:text-[#6E121E] group-hover:translate-x-1 transition-all" />
               </Link>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-[#E8E0D2] flex flex-col gap-3">
-              <a
-                href={generalWhatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#1E3F34] text-white rounded-md text-sm font-medium tracking-wide shadow-sm"
-              >
-                <MessageCircle className="w-4 h-4 text-[#A7F3D0]" />
-                <span>Chat on WhatsApp: {SHOP_CONFIG.phoneFormatted}</span>
-              </a>
-              <a
-                href={`tel:${SHOP_CONFIG.phone}`}
-                className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-[#FAF6EE] text-[#6E121E] border border-[#C5A059]/40 rounded-md text-sm font-medium"
-              >
-                <Phone className="w-4 h-4 text-[#C5A059]" />
-                <span>Call {SHOP_CONFIG.contactPerson}: {SHOP_CONFIG.phoneFormatted}</span>
-              </a>
-            </div>
+            </nav>
           </div>
         )}
       </header>
+
+      {/* Backdrop Overlay to close mobile menu when tapping outside */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/45 backdrop-blur-xs lg:hidden animate-in fade-in duration-200"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       {/* Interactive Search Modal */}
       {isSearchOpen && (

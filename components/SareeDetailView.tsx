@@ -1038,7 +1038,7 @@ export default function SareeDetailView({ saree, relatedSarees }: SareeDetailVie
               </p>
             </div>
 
-            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6 lg:gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 min-[360px]:gap-2.5 sm:gap-6 lg:gap-8">
               {relatedSarees.map((relSaree) => (
                 <SareeCard key={relSaree.id} saree={relSaree} />
               ))}

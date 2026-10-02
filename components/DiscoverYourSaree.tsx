@@ -379,7 +379,7 @@ export default function DiscoverYourSaree({ sarees = [] }: DiscoverYourSareeProp
 
         {/* Real Products Grid */}
         {filteredSarees.length > 0 ? (
-          <div className="grid grid-cols-1 min-[360px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 min-[360px]:gap-2.5 sm:gap-6 lg:gap-8">
             {filteredSarees.slice(0, 8).map((saree) => (
               <SareeCard key={saree.id} saree={saree} />
             ))}

@@ -858,7 +858,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
       </section>
 
       {/* Main Content Area: Sidebar on Desktop + Catalogue Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+      <section className="max-w-7xl mx-auto px-2 min-[360px]:px-4 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* DESKTOP SIDEBAR: Left 3 Columns */}
           <aside className="hidden lg:block lg:col-span-3 bg-[#FAF7F2] p-5 rounded-2xl border border-[#E8E0D2] shadow-xs sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto">
@@ -882,9 +882,9 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
           </aside>
 
           {/* MAIN CATALOGUE AREA: Right 9 Columns */}
-          <div className="lg:col-span-9 space-y-6">
+          <div className="lg:col-span-9 space-y-3 sm:space-y-6">
             {/* Search Toolbar & Sort Controls */}
-            <div className="bg-[#FAF7F2] p-4 sm:p-5 rounded-2xl border border-[#E8E0D2] shadow-xs space-y-4">
+            <div className="bg-[#FAF7F2] p-2.5 min-[360px]:p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-[#E8E0D2] shadow-xs space-y-2.5 sm:space-y-4">
               <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
                 {/* Search Box */}
                 <div className="relative flex-1">
@@ -1186,7 +1186,7 @@ export default function SareesCatalogue({ initialSarees = [] }: SareesCatalogueP
 
             {/* Product Cards Grid or Empty State */}
             {filteredAndSortedSarees.length > 0 ? (
-              <div className="grid grid-cols-1 min-[360px]:grid-cols-2 xl:grid-cols-3 gap-3.5 sm:gap-6">
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-2 min-[360px]:gap-2.5 sm:gap-6">
                 {filteredAndSortedSarees.map((saree) => (
                   <SareeCard key={saree.id} saree={saree} />
                 ))}
